@@ -1,0 +1,155 @@
+from django.db import models
+
+# -------------------
+# Department
+# -------------------
+class Department(models.Model):
+    dept_id = models.CharField(max_length=10, primary_key=True)
+    dept_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.dept_name
+
+
+# -------------------
+# Role
+# -------------------
+class Role(models.Model):
+    role_id = models.CharField(max_length=10, primary_key=True)
+    role_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.role_name
+
+
+# -------------------
+# Programme
+# -------------------
+class Programme(models.Model):
+    pgm_id = models.CharField(max_length=10, primary_key=True)
+    pgm_name = models.CharField(max_length=100)
+    dept = models.ForeignKey(Department, on_delete=models.CASCADE)
+    level = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.pgm_name
+
+
+# -------------------
+# Batch
+# -------------------
+class Batch(models.Model):
+    batch_id = models.CharField(max_length=10, primary_key=True)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    acad_year = models.CharField(max_length=10)
+    part = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"{self.course.name} - {self.acad_year} - {self.part}"
+
+
+# -------------------
+# Teacher
+# -------------------
+class Teacher(models.Model):
+    teacher_id = models.CharField(max_length=10, primary_key=True)
+    name = models.CharField(max_length=100)
+    dept = models.ForeignKey(Department, on_delete=models.CASCADE)
+    designation = models.CharField(max_length=100)
+    gender = models.CharField(max_length=10)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    fb_active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
+# -------------------
+# Teacher-Batch mapping
+# -------------------
+class TeacherBatch(models.Model):
+    teacher_batch_id = models.AutoField(primary_key=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.teacher.name} - {self.batch}"
+
+
+# -------------------
+# Course
+# -------------------
+class Course(models.Model):
+    course_id = models.CharField(max_length=10, primary_key=True)
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=50)
+    credit = models.IntegerField()
+    dept = models.ForeignKey(Department, on_delete=models.CASCADE)
+    pgm = models.ForeignKey(Programme, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+# -------------------
+# Feedback Setup
+# -------------------
+class Feedback(models.Model):
+    fb_id = models.CharField(max_length=10, primary_key=True)
+    part = models.CharField(max_length=20)
+    acad_year = models.CharField(max_length=10)
+
+    def __str__(self):
+        return self.fb_id
+
+
+# -------------------
+# Feedback Question Type
+# -------------------
+class FeedbackQType(models.Model):
+    mcq = models.BooleanField(default=True)
+    desc = models.TextField()
+
+    def __str__(self):
+        return "MCQ" if self.mcq else "Descriptive"
+
+
+# -------------------
+# Feedback Questions
+# -------------------
+class FeedbackQuestion(models.Model):
+    q_id = models.CharField(max_length=10, primary_key=True)
+    q_desc = models.TextField()
+    q_type = models.CharField(max_length=20)  # e.g., 'MCQ' or 'DESC'
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.q_desc
+
+
+# -------------------
+# Feedback Question Options
+# -------------------
+class FeedbackQOption(models.Model):
+    q = models.ForeignKey(FeedbackQuestion, on_delete=models.CASCADE)
+    ans_id = models.CharField(max_length=10)
+    answer = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.answer
+
+
+# -------------------
+# Teacher Feedback Responses
+# -------------------
+class TeacherFeedbackResponse(models.Model):
+    response_id = models.AutoField(primary_key=True)
+    teacher_batch = models.ForeignKey(TeacherBatch, on_delete=models.CASCADE)
+    fb = models.ForeignKey(Feedback, on_delete=models.CASCADE)
+    q = models.ForeignKey(FeedbackQuestion, on_delete=models.CASCADE)
+    ans_id = models.CharField(max_length=10, null=True, blank=True)
+    ans_desc = models.TextField(null=True, blank=True)
+    created_date_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.teacher_batch} - {self.q}"

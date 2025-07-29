@@ -1,0 +1,39 @@
+<!-- templates/teacher_report.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="report-section">
+    <h2>Teacher Report</h2>
+    
+    <div class="table-container">
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Teacher</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Course</th>
+                    <th>Programme</th>
+                    <th>Batch</th>
+                    <th>Teacher-Batch</th>
+                    <th>Avg Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table_data %}
+                <tr>
+                    <td>{{ row.teacher }}</td>
+                    <td>{{ row.role }}</td>
+                    <td>{{ row.department }}</td>
+                    <td>{{ row.course }}</td>
+                    <td>{{ row.programme }}</td>
+                    <td>{{ row.batch }}</td>
+                    <td>{{ row.teacher_batch }}</td>
+                    <td>{{ row.avg_rating }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+<!-- templates/manage_teachers.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="manage-section">
+    <h2>Manage Teachers</h2>
+    
+    <div class="add-form">
+        <h3>Add New Teacher/HOD</h3>
+        <form id="addTeacherForm">
+            {% csrf_token %}
+            <div class="form-row">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <input type="text" id="name" placeholder="Full Name" required>
+                <select id="role" required>
+                    <option value="">Select Role</option>
+                    <option value="HOD">HOD</option>
+                    <option value="TEACHER">Teacher</option>
+                </select>
+                <select id="department" required>
+                    <option value="">Select Department</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Add Teacher</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="table-container">
+        <table id="teachersTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Username</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td>{{ teacher.name }}</td>
+                    <td>{{ teacher.role }}</td>
+                    <td>{{ teacher.department.name }}</td>
+                    <td>{{ teacher.user.username }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

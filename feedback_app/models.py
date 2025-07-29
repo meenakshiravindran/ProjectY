@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 # -------------------
 # Department
 # -------------------
@@ -52,6 +52,7 @@ class Batch(models.Model):
 # Teacher
 # -------------------
 class Teacher(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)  # <-- Add this line
     teacher_id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=100)
     dept = models.ForeignKey(Department, on_delete=models.CASCADE)
@@ -62,7 +63,6 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.name
-
 
 # -------------------
 # Teacher-Batch mapping

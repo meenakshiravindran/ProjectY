@@ -1,32 +1,12 @@
-<!-- templates/dashboard.html -->
-{% extends 'base.html' %}
-
-{% block content %}
-<div class="dashboard">
-    <h2>Welcome, {{ teacher.name }}</h2>
-    <p>Role: {{ teacher.role }}</p>
-    <p>Department: {{ teacher.department.name }}</p>
-    
-    <div class="dashboard-cards">
-        {% if is_admin %}
-        <div class="card">
-            <h3>Admin Dashboard</h3>
-            <p>Manage teachers, assign batches, and view reports</p>
-        </div>
-        {% else %}
-        {% if is_hod %}
-        <div class="card">
-            <h3>HOD Dashboard</h3>
-            <p>Manage courses for your department</p>
-            <a href="{% url 'manage_courses' %}" class="btn">Manage Courses</a>
-        </div>
-        {% else %}
-        <div class="card">
-            <h3>Teacher Dashboard</h3>
-            <p>View your assigned batches and courses</p>
-        </div>
-        {% endif %}
-        {% endif %}
-    </div>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html>
+<head><title>Admin Dashboard</title></head>
+<body>
+  <h1>Welcome, Admin</h1>
+  <ul>
+    <li><a href="{% url 'manage_teachers' %}">Manage Teachers</a></li>
+    <li><a href="{% url 'assign_batches' %}">Assign Batches</a></li>
+    <li><a href="{% url 'teacher_report' %}">View Feedback Reports</a></li>
+  </ul>
+</body>
+</html>

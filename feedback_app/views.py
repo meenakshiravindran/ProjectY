@@ -29,12 +29,12 @@ def dashboard(request):
         context = {
             'teacher': teacher,
             'is_admin': request.user.is_superuser,
-            'is_hod': teacher.role == 'HOD'
+            'is_hod': teacher.role.role_name == 'HOD'
         }
         return render(request, 'dashboard.html', context)
     except Teacher.DoesNotExist:
         if request.user.is_superuser:
-            return render(request, 'admin_dashboard.html')
+            return render(request, 'dashboard.html')
         return redirect('login')
 
 @login_required
@@ -63,12 +63,15 @@ def add_teacher(request):
         department_id = data.get('department')
         
         user = User.objects.create_user(username=username, password=password)
-        department = Department.objects.get(id=department_id)
+        department = Department.objects.get(dept_id=department_id)
+        role = Role.objects.get(role_id=role)
         Teacher.objects.create(
             user=user,
             name=name,
             role=role,
-            department=department
+            dept=department,
+            designation='Lecturer',  # or get from form if needed
+            gender='Other'  # or get from form if needed
         )
         
         return JsonResponse({'success': True})

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Delete Programme{% endblock %}
+{% block content %}
+<h2 class="mb-3 text-danger">Confirm Delete</h2>
+<p>Are you sure you want to delete <strong>{{ programme.pgm_name }}</strong>?</p>
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'programme_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

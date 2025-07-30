@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Programmes{% endblock %}
+{% block content %}
+<h2 class="mb-3">Programmes</h2>
+<a href="{% url 'add_programme' %}" class="btn btn-primary mb-3">Add Programme</a>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>SI.No</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Level</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in programmes %}
+        {% if p.pgm_id %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ p.pgm_name }}</td>
+            <td>{{ p.dept.dept_name }}</td>
+            <td>{{ p.level }}</td>
+            <td>
+                <a href="{% url 'edit_programme' p.pgm_id %}" class="btn btn-sm btn-warning">Edit</a>
+                <form action="{% url 'delete_programme' p.pgm_id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endif %}
+        {% empty %}
+        <tr><td colspan="5" class="text-center">No programmes found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

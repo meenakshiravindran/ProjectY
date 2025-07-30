@@ -1,20 +1,21 @@
-# urls.py
-from django.contrib import admin
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('manage-teachers/', views.manage_teachers, name='manage_teachers'),
-    path('add-teacher/', views.add_teacher, name='add_teacher'),
-    path('manage-courses/', views.manage_courses, name='manage_courses'),
-    path('add-course/', views.add_course, name='add_course'),
-    path('assign-batches/', views.assign_batches, name='assign_batches'),
-    path('assign-batch-to-teacher/', views.assign_batch_to_teacher, name='assign_batch_to_teacher'),
-    path('feedback/', views.feedback_form, name='feedback_form'),
-    path('submit-feedback/', views.submit_feedback, name='submit_feedback'),
-    path('teacher-report/', views.teacher_report, name='teacher_report'),
+    path('', views.user_login, name='login'),
+    path('index/', views.index, name='index'),
+    path('logout/', views.user_logout, name='logout'),
+    path('programmes/', views.programme_list, name='programme_list'),
+    path('programmes/add/', views.add_programme, name='add_programme'),
+    path('programmes/edit/<str:pgm_id>/', views.edit_programme, name='edit_programme'),
+    path('programmes/delete/<str:pgm_id>/', views.delete_programme, name='delete_programme'),
+    path('courses/', views.course_list, name='course_list'),
+    path('courses/add/', views.add_course, name='add_course'),
+    path('courses/edit/<int:pk>/', views.edit_course, name='edit_course'),
+    path('courses/delete/<int:pk>/', views.delete_course, name='delete_course'),
+    path('courses/<int:course_id>/batches/', views.batch_list, name='batch_list'),
+    path('courses/<int:course_id>/batches/add/', views.add_batch, name='add_batch'),
+    path('batches/edit/<int:batch_id>/', views.edit_batch, name='edit_batch'),
+    path('batches/delete/<int:batch_id>/', views.delete_batch, name='delete_batch'),
+
 ]

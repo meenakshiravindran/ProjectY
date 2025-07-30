@@ -1,232 +1,140 @@
-# views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import Teacher, Course, Programme, Batch, TeacherBatch, Feedback, Department
-import json
-from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from .models import Programme, Department
+from django.shortcuts import get_object_or_404
+from .forms import ProgrammeForm
 
-def login_view(request):
+def user_login(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+        if user:
             login(request, user)
-            return redirect('dashboard')
+            return redirect('index')
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
     return render(request, 'login.html')
 
-def logout_view(request):
+@login_required
+def index(request):
+    return render(request, 'index.html')
+
+def user_logout(request):
     logout(request)
     return redirect('login')
+@login_required
+def programme_list(request):
+    programmes = Programme.objects.all()
+    return render(request, 'programme_list.html', {'programmes': programmes})
 
 @login_required
-def dashboard(request):
-    try:
-        teacher = Teacher.objects.get(user=request.user)
-        context = {
-            'teacher': teacher,
-            'is_admin': request.user.is_superuser,
-            'is_hod': teacher.role.role_name == 'HOD'
-        }
-        return render(request, 'dashboard.html', context)
-    except Teacher.DoesNotExist:
-        if request.user.is_superuser:
-            return render(request, 'dashboard.html')
-        return redirect('login')
+def add_programme(request):
+    form = ProgrammeForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('programme_list')
+    return render(request, 'add_programme.html', {'form': form, 'editing': False})
 
 @login_required
-def manage_teachers(request):
-    if not request.user.is_superuser:
-        return redirect('dashboard')
-    
-    teachers = Teacher.objects.all()
-    departments = Department.objects.all()
-    return render(request, 'manage_teachers.html', {
-        'teachers': teachers,
-        'departments': departments
-    })
+def edit_programme(request, pgm_id):
+    programme = get_object_or_404(Programme, pgm_id=pgm_id)
+    form = ProgrammeForm(request.POST or None, instance=programme)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('programme_list')
+    return render(request, 'add_programme.html', {'form': form, 'editing': True})
 
 @login_required
-def add_teacher(request):
-    if not request.user.is_superuser:
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-    
+def delete_programme(request, pgm_id):
+    programme = get_object_or_404(Programme, pgm_id=pgm_id)
     if request.method == 'POST':
-        data = json.loads(request.body)
-        username = data.get('username')
-        password = data.get('password')
-        name = data.get('name')
-        role = data.get('role')
-        department_id = data.get('department')
-        
-        user = User.objects.create_user(username=username, password=password)
-        department = Department.objects.get(dept_id=department_id)
-        role = Role.objects.get(role_id=role)
-        Teacher.objects.create(
-            user=user,
-            name=name,
-            role=role,
-            dept=department,
-            designation='Lecturer',  # or get from form if needed
-            gender='Other'  # or get from form if needed
-        )
-        
-        return JsonResponse({'success': True})
-    
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+        programme.delete()
+        return redirect('programme_list')
+    return render(request, 'delete_programme.html', {'programme': programme})
+
+from .models import Course
+from .forms import CourseForm
 
 @login_required
-def manage_courses(request):
-    teacher = get_object_or_404(Teacher, user=request.user)
-    if teacher.role != 'HOD':
-        return redirect('dashboard')
-    
-    programmes = Programme.objects.filter(department=teacher.department)
-    courses = Course.objects.filter(department=teacher.department)
-    return render(request, 'manage_courses.html', {
-        'programmes': programmes,
-        'courses': courses
-    })
+def course_list(request):
+    courses = Course.objects.all().prefetch_related('batch_set')
+    return render(request, 'course_list.html', {'courses': courses})
 
 @login_required
 def add_course(request):
-    teacher = get_object_or_404(Teacher, user=request.user)
-    if teacher.role != 'HOD':
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-    
     if request.method == 'POST':
-        data = json.loads(request.body)
-        name = data.get('name')
-        code = data.get('code')
-        programme_id = data.get('programme')
-        
-        programme = Programme.objects.get(id=programme_id)
-        Course.objects.create(
-            name=name,
-            code=code,
-            programme=programme,
-            department=teacher.department
-        )
-        
-        return JsonResponse({'success': True})
-    
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('course_list')
+    else:
+        form = CourseForm()
+    return render(request, 'add_course.html', {'form': form})
 
 @login_required
-def assign_batches(request):
-    if not request.user.is_superuser:
-        return redirect('dashboard')
-    
-    teachers = Teacher.objects.all()
-    batches = Batch.objects.all()
-    courses = Course.objects.all()
-    teacher_batches = TeacherBatch.objects.all()
-    
-    return render(request, 'assign_batches.html', {
-        'teachers': teachers,
-        'batches': batches,
-        'courses': courses,
-        'teacher_batches': teacher_batches
-    })
-
-@login_required
-def assign_batch_to_teacher(request):
-    if not request.user.is_superuser:
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-    
+def edit_course(request, pk):
+    course = get_object_or_404(Course, pk=pk)
     if request.method == 'POST':
-        data = json.loads(request.body)
-        teacher_id = data.get('teacher')
-        batch_id = data.get('batch')
-        course_id = data.get('course')
-        
-        teacher = Teacher.objects.get(id=teacher_id)
-        batch = Batch.objects.get(id=batch_id)
-        course = Course.objects.get(id=course_id)
-        
-        TeacherBatch.objects.create(
-            teacher=teacher,
-            batch=batch,
-            course=course
-        )
-        
-        return JsonResponse({'success': True})
-    
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            return redirect('course_list')
+    else:
+        form = CourseForm(instance=course)
+    return render(request, 'add_course.html', {'form': form})
 
 @login_required
-def feedback_form(request):
-    if not request.user.is_superuser:
-        return redirect('dashboard')
-    
-    teachers = Teacher.objects.all()
-    batches = Batch.objects.all()
-    courses = Course.objects.all()
-    
-    return render(request, 'feedback_form.html', {
-        'teachers': teachers,
-        'batches': batches,
-        'courses': courses
-    })
-
-@login_required
-def submit_feedback(request):
+def delete_course(request, pk):
+    course = get_object_or_404(Course, pk=pk)
     if request.method == 'POST':
-        data = json.loads(request.body)
-        teacher_id = data.get('teacher')
-        batch_id = data.get('batch')
-        course_id = data.get('course')
-        rating = data.get('rating')
-        comments = data.get('comments')
-        
-        teacher = Teacher.objects.get(id=teacher_id)
-        batch = Batch.objects.get(id=batch_id)
-        course = Course.objects.get(id=course_id)
-        
-        Feedback.objects.create(
-            teacher=teacher,
-            batch=batch,
-            course=course,
-            rating=rating,
-            comments=comments
-        )
-        
-        return JsonResponse({'success': True})
-    
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+        course.delete()
+        return redirect('course_list')
+    return render(request, 'delete_course.html', {'course': course})
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Batch, Course
+from .forms import BatchForm
 
 @login_required
-def teacher_report(request):
-    if not request.user.is_superuser:
-        return redirect('dashboard')
-    
-    teacher_batches = TeacherBatch.objects.select_related('teacher', 'batch', 'course').all()
-    
-    # Create table data
-    table_data = []
-    for tb in teacher_batches:
-        feedbacks = Feedback.objects.filter(
-            teacher=tb.teacher,
-            batch=tb.batch,
-            course=tb.course
-        )
-        
-        avg_rating = 0
-        if feedbacks.exists():
-            avg_rating = sum(f.rating for f in feedbacks) / feedbacks.count()
-        
-        table_data.append({
-            'teacher': tb.teacher.name,
-            'role': tb.teacher.role,
-            'department': tb.teacher.department.name,
-            'course': tb.course.name,
-            'programme': tb.batch.programme.name,
-            'batch': tb.batch.name,
-            'teacher_batch': f"{tb.teacher.name} - {tb.batch.name}",
-            'avg_rating': round(avg_rating, 1) if avg_rating else 'No feedback'
-        })
-    
-    return render(request, 'teacher_report.html', {'table_data': table_data})
+def batch_list(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    batches = Batch.objects.filter(course=course)
+    return render(request, 'batch_list.html', {'course': course, 'batches': batches})
+
+@login_required
+def add_batch(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    if request.method == 'POST':
+        form = BatchForm(request.POST)
+        if form.is_valid():
+            batch = form.save(commit=False)
+            batch.course = course
+            batch.save()
+            return redirect('course_list')
+    else:
+        form = BatchForm()
+    return render(request, 'add_batch.html', {'form': form, 'course': course})
+
+@login_required
+def edit_batch(request, batch_id):
+    batch = get_object_or_404(Batch, pk=batch_id)
+    if request.method == 'POST':
+        form = BatchForm(request.POST, instance=batch)
+        if form.is_valid():
+            form.save()
+            return redirect('batch_list', course_id=batch.course.pk)
+    else:
+        form = BatchForm(instance=batch)
+    return render(request, 'add_batch.html', {'form': form, 'course': batch.course})
+
+@login_required
+def delete_batch(request, batch_id):
+    batch = get_object_or_404(Batch, pk=batch_id)
+    course_id = batch.course.pk
+    if request.method == 'POST':
+        batch.delete()
+        return redirect('batch_list', course_id=course_id)
+    return render(request, 'delete_batch.html', {'batch': batch})

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}{{ form.instance.pk|yesno:"Edit Batch,Add Batch" }}{% endblock %}
+{% block content %}
+<h3>{{ form.instance.pk|yesno:"Edit Batch,Add Batch" }} for {{ course.name }}</h3>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'course_list' %}" class="btn btn-secondary">Back</a>
+</form>
+{% endblock %}

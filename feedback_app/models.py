@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 # Department
 # -------------------
 class Department(models.Model):
-    dept_id = models.CharField(max_length=10, primary_key=True)
+    dept_id = models.AutoField(primary_key=True)
     dept_name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -15,7 +15,7 @@ class Department(models.Model):
 # Role
 # -------------------
 class Role(models.Model):
-    role_id = models.CharField(max_length=10, primary_key=True)
+    role_id = models.AutoField(primary_key=True)
     role_name = models.CharField(max_length=50)
 
     def __str__(self):
@@ -26,7 +26,7 @@ class Role(models.Model):
 # Programme
 # -------------------
 class Programme(models.Model):
-    pgm_id = models.CharField(max_length=10, primary_key=True)
+    pgm_id = models.AutoField(primary_key=True)
     pgm_name = models.CharField(max_length=100)
     dept = models.ForeignKey(Department, on_delete=models.CASCADE)
     level = models.CharField(max_length=50)
@@ -39,7 +39,7 @@ class Programme(models.Model):
 # Batch
 # -------------------
 class Batch(models.Model):
-    batch_id = models.CharField(max_length=10, primary_key=True)
+    batch_id = models.AutoField(primary_key=True)
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
     acad_year = models.CharField(max_length=10)
     part = models.CharField(max_length=20)
@@ -53,7 +53,7 @@ class Batch(models.Model):
 # -------------------
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)  # <-- Add this line
-    teacher_id = models.CharField(max_length=10, primary_key=True)
+    teacher_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     dept = models.ForeignKey(Department, on_delete=models.CASCADE)
     designation = models.CharField(max_length=100)
@@ -80,7 +80,7 @@ class TeacherBatch(models.Model):
 # Course
 # -------------------
 class Course(models.Model):
-    course_id = models.CharField(max_length=10, primary_key=True)
+    course_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=50)
     credit = models.IntegerField()

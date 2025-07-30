@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Courses{% endblock %}
+{% block content %}
+<h2 class="mb-3">Courses</h2>
+<a href="{% url 'add_course' %}" class="btn btn-primary mb-3">Add Course</a>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>SI.No</th>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Credits</th>
+            <th>Department</th>
+            <th>Programme</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in courses %}
+    <tr class="course-row" data-course-id="{{ course.course_id }}" style="cursor: pointer;">
+        <td>{{ forloop.counter }}</td>
+        <td>{{ course.name }}</td>
+        <td>{{ course.code }}</td>
+        <td>{{ course.credit }}</td>
+        <td>{{ course.dept.dept_name }}</td>
+        <td>{{ course.pgm.pgm_name }}</td>
+        <td>
+            <a href="{% url 'edit_course' course.course_id %}" class="btn btn-sm btn-warning">Edit</a>
+            <form action="{% url 'delete_course' course.course_id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+        </td>
+    </tr>
+
+    <tr class="batch-row" id="batch-{{ course.course_id }}" style="display:none;">
+        <td colspan="7">
+            <strong>Batches:</strong>
+            <ul>
+                {% for batch in course.batch_set.all %}
+                <li>{{ batch.acad_year }} - {{ batch.part }}</li>
+                {% empty %}
+                <li>No batches found.</li>
+                {% endfor %}
+            </ul>
+            <a href="{% url 'add_batch' course.course_id %}" class="btn btn-sm btn-success">Add Batch</a>
+        </td>
+    </tr>
+    {% endfor %}
+
+    </tbody>
+</table>
+<script>
+    document.querySelectorAll('.course-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const courseId = row.dataset.courseId;
+            const batchRow = document.getElementById('batch-' + courseId);
+            batchRow.style.display = batchRow.style.display === 'none' ? 'table-row' : 'none';
+        });
+    });
+    </script>
+{% endblock %}

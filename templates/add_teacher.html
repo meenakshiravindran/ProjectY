@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}{{ editing|yesno:"Edit Teacher,Add Teacher" }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">{{ editing|yesno:"Edit Teacher,Add Teacher" }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.as_p }}
+    </div>
+    <button type="submit" class="btn btn-success">{{ editing|yesno:"Update,Add" }}</button>
+    <a href="{% url 'teacher_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

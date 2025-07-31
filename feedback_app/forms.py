@@ -1,5 +1,6 @@
 from django import forms
-from .models import Programme,Course,Batch
+from .models import Programme,Course,Batch,Teacher
+from django.contrib.auth.models import User
 
 LEVEL_CHOICES = [
     ('UG', 'UG'),
@@ -37,3 +38,49 @@ class BatchForm(forms.ModelForm):
     class Meta:
         model = Batch
         fields = ['acad_year', 'part']
+
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import Teacher
+
+class TeacherForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, help_text='Required.')
+    password = forms.CharField(widget=forms.PasswordInput, help_text='Required.')
+
+    class Meta:
+        model = Teacher
+        fields = ['username', 'password', 'name', 'dept', 'designation', 'gender', 'role', 'fb_active']
+        labels = {
+            'name': 'Teacher Name',
+            'dept': 'Department',
+            'designation': 'Designation',
+            'gender': 'Gender',
+            'role': 'Role',
+            'fb_active': 'Feedback Active?',
+        }
+
+    def save(self, commit=True):
+        # Save user first
+        user = User.objects.create_user(
+            username=self.cleaned_data['username'],
+            password=self.cleaned_data['password']
+        )
+        teacher = super().save(commit=False)
+        teacher.user = user
+        if commit:
+            teacher.save()
+        return teacher
+    
+class TeacherEditForm(forms.ModelForm):
+    class Meta:
+        model = Teacher
+        fields = ['name', 'dept', 'designation', 'gender', 'role', 'fb_active']
+        labels = {
+            'name': 'Teacher Name',
+            'dept': 'Department',
+            'designation': 'Designation',
+            'gender': 'Gender',
+            'role': 'Role',
+            'fb_active': 'Feedback Active?',
+        }

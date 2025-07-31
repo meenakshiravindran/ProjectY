@@ -138,3 +138,92 @@ def delete_batch(request, batch_id):
         batch.delete()
         return redirect('batch_list', course_id=course_id)
     return render(request, 'delete_batch.html', {'batch': batch})
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.models import User
+from .models import Teacher
+from .forms import TeacherForm,TeacherEditForm  # Add TeacherEditForm separately (without password)
+
+@login_required()
+
+def teacher_list(request):
+    teachers = Teacher.objects.all()
+    return render(request, 'teacher_list.html', {'teachers': teachers})
+
+@login_required()
+
+def add_teacher(request):
+    if request.method == 'POST':
+        form = TeacherForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, "Teacher added successfully!")
+                return redirect('teacher_list')
+            except Exception as e:
+                messages.error(request, f"Error saving teacher: {e}")
+        else:
+            messages.error(request, "Form is invalid.")
+    else:
+        form = TeacherForm()
+    
+    return render(request, 'add_teacher.html', {'form': form})
+
+@login_required()
+
+def edit_teacher(request, pk):
+    teacher = get_object_or_404(Teacher, pk=pk)
+    user = teacher.user
+
+    if request.method == "POST":
+        form = TeacherEditForm(request.POST, instance=teacher)  # Only TeacherEditForm (no password)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Teacher updated successfully!")
+            return redirect('teacher_list')
+    else:
+        form = TeacherEditForm(instance=teacher)
+
+    return render(request, 'add_teacher.html', {'form': form, 'edit_mode': True})
+
+@login_required()
+
+def delete_teacher(request, pk):
+    teacher = get_object_or_404(Teacher, pk=pk)
+    if request.method == 'POST':
+        teacher.user.delete()
+        return redirect('teacher_list')
+    return render(request, 'delete_teacher.html', {'teacher': teacher})
+
+@login_required()
+def change_teacher_password(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    if request.method == 'POST':
+        form = PasswordChangeForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Password updated successfully.')
+            return redirect('teacher_list')
+    else:
+        form = PasswordChangeForm(user)
+    return render(request, 'change_password.html', {'form': form, 'username': user.username})
+from django.contrib.auth.forms import SetPasswordForm
+
+@login_required()
+def reset_teacher_password(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Password reset successfully for {user.username}.')
+            return redirect('teacher_list')
+    else:
+        form = SetPasswordForm(user)
+    return render(request, 'reset_password.html', {'form': form, 'username': user.username})
+

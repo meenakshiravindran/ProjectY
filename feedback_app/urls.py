@@ -27,7 +27,8 @@ urlpatterns = [
     path('assignments/add/', views.add_teacher_batch, name='add_teacher_batch'),
     path('assignments/edit/<int:pk>/', views.edit_teacher_batch, name='edit_teacher_batch'),
     path('assignments/delete/<int:pk>/', views.delete_teacher_batch, name='delete_teacher_batch'),
-  
+    path('assign-teacher/<int:pk>/', views.assign_teacher_modal, name='assign_teacher_to_batch'),
+
 ]
     
 

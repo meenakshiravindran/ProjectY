@@ -232,11 +232,12 @@ def reset_teacher_password(request, user_id):
 # -------------------------------
 @login_required
 def teacher_batch_list(request):
-    assignments = TeacherBatch.objects.select_related(
-        'teacher', 'batch', 'course', 'course__dept'
-    )
-    return render(request, 'teacher_batch_list.html', {'assignments': assignments})
-
+    assignments = TeacherBatch.objects.select_related('course', 'batch', 'department', 'teacher')
+    teachers = Teacher.objects.all()
+    return render(request, 'teacher_batch_list.html', {
+        'assignments': assignments,
+        'teachers': teachers
+    })
 
 # -------------------------------
 # View: Add Assignment
@@ -305,3 +306,25 @@ def remove_teacher_from_batch(request, pk):
     assignment.save()
     messages.success(request, "Teacher removed from batch.")
     return redirect('teacher_batch_list')
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import TeacherBatch, Teacher
+
+def assign_teacher_modal(request, pk):
+    assignment = get_object_or_404(TeacherBatch, pk=pk)
+    teachers = Teacher.objects.all()
+
+    if request.method == 'POST':
+        teacher_id = request.POST.get('teacher_id')
+        if teacher_id:
+            selected_teacher = Teacher.objects.get(pk=teacher_id)
+            assignment.teacher = selected_teacher
+            assignment.save()
+            messages.success(request, "Teacher assigned successfully.")
+        return redirect('teacher_batch_list')
+
+    return render(request, 'partials/assign_teacher_modal.html', {
+        'assignment': assignment,
+        'teachers': teachers
+    })

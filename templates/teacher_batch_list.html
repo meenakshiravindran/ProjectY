@@ -30,12 +30,46 @@
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-danger">Remove</button>
                 </form>
-            </td>
+
+                <!-- Updated Assign Teacher as Modal Trigger -->
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#assignTeacherModal{{ assignment.id }}">
+                  Assign Teacher
+                </button>
+
+               
         </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6" class="text-center">No assignments found.</td>
-        </tr>
+
+        <!-- Modal Content Per Row -->
+        <div class="modal fade" id="assignTeacherModal{{ assignment.id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <form method="post" action="{% url 'assign_teacher_to_batch' assignment.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title">Select Teacher</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="row">
+                    {% for teacher in teachers %}
+                    <div class="col-md-4 mb-2">
+                      <label class="btn btn-outline-primary w-100">
+                        <input type="radio" name="teacher_id" value="{{ teacher.id }}" class="d-none">
+                        {{ teacher.name }}
+                      </label>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
         {% endfor %}
     </tbody>
 </table>

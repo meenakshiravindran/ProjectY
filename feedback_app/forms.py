@@ -88,8 +88,16 @@ class TeacherEditForm(forms.ModelForm):
 class TeacherAssignForm(forms.ModelForm):
     class Meta:
         model = TeacherBatch
-        fields = ['teacher', 'batch']  # include all necessary fields
+        fields = ['department', 'teacher', 'batch', 'course']  # Add department here
         labels = {
+            'department': 'Select Department',
             'teacher': 'Select Teacher',
             'batch': 'Select Batch',
+            'course': 'Select Course',
+        }
+        widgets = {
+            'department': forms.Select(attrs={'class': 'form-control'}),
+            'teacher': forms.Select(attrs={'class': 'form-control'}),
+            'batch': forms.Select(attrs={'class': 'form-control'}),
+            'course': forms.Select(attrs={'class': 'form-control'}),
         }

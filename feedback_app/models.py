@@ -65,18 +65,6 @@ class Teacher(models.Model):
         return self.name
 
 # -------------------
-# Teacher-Batch mapping
-# -------------------
-class TeacherBatch(models.Model):
-    teacher_batch_id = models.AutoField(primary_key=True)
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.teacher.name} - {self.batch}"
-
-
-# -------------------
 # Course
 # -------------------
 class Course(models.Model):
@@ -89,6 +77,20 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
+# -------------------
+# Teacher-Batch mapping
+# -------------------
+class TeacherBatch(models.Model):
+    teacher_batch_id = models.AutoField(primary_key=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)  # ✅ Add this line
+
+    def __str__(self):
+        return f"{self.teacher.name} - {self.batch.acad_year} - {self.course.code}"
+
 
 
 # -------------------

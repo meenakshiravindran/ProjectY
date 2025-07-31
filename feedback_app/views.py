@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Programme, Department
+from .models import Programme, Department,TeacherBatch
 from django.shortcuts import get_object_or_404
-from .forms import ProgrammeForm
+from .forms import ProgrammeForm,TeacherAssignForm
 
 def user_login(request):
     if request.method == 'POST':
@@ -227,3 +227,58 @@ def reset_teacher_password(request, user_id):
         form = SetPasswordForm(user)
     return render(request, 'reset_password.html', {'form': form, 'username': user.username})
 
+# -------------------------------
+# View: List All Assignments
+# -------------------------------
+@login_required
+def teacher_batch_list(request):
+    assignments = TeacherBatch.objects.select_related(
+        'teacher', 'batch', 'course', 'course__dept'
+    )
+    return render(request, 'teacher_batch_list.html', {'assignments': assignments})
+
+
+# -------------------------------
+# View: Add Assignment
+# -------------------------------
+@login_required
+def add_teacher_batch(request):
+    if request.method == 'POST':
+        form = TeacherAssignForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Teacher assigned successfully.")
+            return redirect('teacher_batch_list')
+    else:
+        form = TeacherAssignForm()
+    return render(request, 'add_teacher_batch.html', {'form': form})
+
+
+# -------------------------------
+# View: Edit Assignment
+# -------------------------------
+@login_required
+def edit_teacher_batch(request, pk):
+    assignment = get_object_or_404(TeacherBatch, pk=pk)
+    if request.method == 'POST':
+        form = TeacherAssignForm(request.POST, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Assignment updated successfully.")
+            return redirect('teacher_batch_list')
+    else:
+        form = TeacherAssignForm(instance=assignment)
+    return render(request, 'add_teacher_batch.html', {'form': form, 'edit_mode': True})
+
+
+# -------------------------------
+# View: Delete Assignment
+# -------------------------------
+@login_required
+def delete_teacher_batch(request, pk):
+    assignment = get_object_or_404(TeacherBatch, pk=pk)
+    if request.method == 'POST':
+        assignment.delete()
+        messages.success(request, "Assignment removed successfully.")
+        return redirect('teacher_batch_list')
+    return render(request, 'delete_teacher_batch.html', {'assignment': assignment})

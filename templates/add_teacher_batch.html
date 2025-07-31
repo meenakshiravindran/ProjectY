@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}{{ edit_mode|default:False|yesno:"Edit Assignment,Assign Teacher" }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">{{ edit_mode|default:False|yesno:"Edit Assignment,Assign Teacher to Batch" }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.as_p }}
+    </div>
+    <button type="submit" class="btn btn-success">{{ edit_mode|default:False|yesno:"Update,Assign" }}</button>
+    <a href="{% url 'teacher_batch_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

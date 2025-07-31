@@ -1,5 +1,5 @@
 from django import forms
-from .models import Programme,Course,Batch,Teacher
+from .models import Programme,Course,Batch,TeacherBatch, Teacher
 from django.contrib.auth.models import User
 
 LEVEL_CHOICES = [
@@ -83,4 +83,13 @@ class TeacherEditForm(forms.ModelForm):
             'gender': 'Gender',
             'role': 'Role',
             'fb_active': 'Feedback Active?',
+        }
+
+class TeacherAssignForm(forms.ModelForm):
+    class Meta:
+        model = TeacherBatch
+        fields = ['teacher', 'batch']  # include all necessary fields
+        labels = {
+            'teacher': 'Select Teacher',
+            'batch': 'Select Batch',
         }

@@ -34,6 +34,8 @@
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                 </form>
+                <a href="{% url 'change_teacher_password' teacher.user.id %}" class="btn btn-sm btn-outline-primary">Change Password</a>
+                <a href="{% url 'reset_teacher_password' teacher.user.id %}" class="btn btn-sm btn-outline-secondary">Reset Password</a>
             </td>
         </tr>
         {% empty %}

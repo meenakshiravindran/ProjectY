@@ -1,12 +1,25 @@
 {% extends 'base.html' %}
 {% block title %}{% if editing %}Edit Programme{% else %}Add Programme{% endif %}{% endblock %}
-{% block content %}
-<h2>{% if editing %}Edit{% else %}Add{% endif %} Programme</h2>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">{% if editing %}Update{% else %}Add{% endif %}</button>
-    <a href="{% url 'programme_list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+{% block content %}
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">{% if editing %}Edit{% else %}Add{% endif %} Programme</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-success me-2">
+                        {% if editing %}Update{% else %}Add{% endif %}
+                    </button>
+                    <a href="{% url 'programme_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
+

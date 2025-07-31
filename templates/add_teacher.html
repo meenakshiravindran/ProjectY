@@ -1,15 +1,71 @@
 {% extends 'base.html' %}
-{% block title %}{{ editing|yesno:"Edit Teacher,Add Teacher" }}{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:"Edit Teacher,Add Teacher" }}{% endblock %}
 
 {% block content %}
-<h2 class="mb-3">{{ editing|yesno:"Edit Teacher,Add Teacher" }}</h2>
+<div class="container mt-5" style="max-width: 700px;">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">{{ form.instance.pk|yesno:"Edit Teacher,Add Teacher" }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
 
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        {{ form.as_p }}
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">Teacher Name:</label>
+                    {{ form.name }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_dept" class="form-label">Department:</label>
+                    {{ form.dept }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_designation" class="form-label">Designation:</label>
+                    {{ form.designation }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Gender:</label>
+                    <div class="d-flex gap-4">
+                        {% for radio in form.gender %}
+                            <div class="form-check form-check-inline">
+                                {{ radio.tag }}
+                                <label class="form-check-label">{{ radio.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_role" class="form-label">Role:</label>
+                    {{ form.role }}
+                </div>
+
+                <div class="mb-3 form-check">
+                    {{ form.fb_active }}
+                    <label for="id_fb_active" class="form-check-label">Feedback Active?</label>
+                </div>
+                {% if not form.instance.pk %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Username:</label>
+                        {{ form.username }}
+                    </div>
+
+                    <div class="mb-3">
+                    <label for="id_password" class="form-label">Password:</label>
+                    {{ form.password }}
+                    </div>
+                {% endif %}
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-success me-2">Save</button>
+                    <a href="{% url 'teacher_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
-    <button type="submit" class="btn btn-success">{{ editing|yesno:"Update,Add" }}</button>
-    <a href="{% url 'teacher_list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+</div>
 {% endblock %}
+
+

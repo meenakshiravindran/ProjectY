@@ -60,7 +60,11 @@ from .forms import CourseForm
 @login_required
 def course_list(request):
     courses = Course.objects.all().prefetch_related('batch_set')
-    return render(request, 'course_list.html', {'courses': courses})
+    batch_form = BatchForm()
+    return render(request, 'course_list.html', {
+        'courses': courses,
+        'batch_form': batch_form
+    })
 
 @login_required
 def add_course(request):
@@ -248,7 +252,6 @@ def add_teacher_batch(request):
         form = TeacherAssignForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Teacher assigned successfully.")
             return redirect('teacher_batch_list')
     else:
         form = TeacherAssignForm()
@@ -265,7 +268,6 @@ def edit_teacher_batch(request, pk):
         form = TeacherAssignForm(request.POST, instance=assignment)
         if form.is_valid():
             form.save()
-            messages.success(request, "Assignment updated successfully.")
             return redirect('teacher_batch_list')
     else:
         form = TeacherAssignForm(instance=assignment)
@@ -280,48 +282,54 @@ def delete_teacher_batch(request, pk):
     assignment = get_object_or_404(TeacherBatch, pk=pk)
     if request.method == 'POST':
         assignment.delete()
-        messages.success(request, "Assignment removed successfully.")
         return redirect('teacher_batch_list')
     return render(request, 'delete_teacher_batch.html', {'assignment': assignment})
 
 
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
+from .models import TeacherBatch, Teacher
 
 def assign_teacher_to_batch(request, pk):
     assignment = get_object_or_404(TeacherBatch, pk=pk)
     if request.method == 'POST':
-        form = TeacherAssignForm(request.POST, instance=assignment)
-        if form.is_valid():
-            form.save()
+        teacher_ids = request.POST.getlist('teacher_ids')  # no brackets []
+        if teacher_ids:
+            # Pick the first one selected
+            assignment.teacher = Teacher.objects.get(pk=teacher_ids[0])
+            assignment.save()
             messages.success(request, "Teacher assigned successfully.")
-            return redirect('teacher_batch_list')
-    else:
-        form = TeacherAssignForm(instance=assignment)
-    return render(request, 'assign_teacher_to_batch.html', {'form': form})
+        else:
+            messages.warning(request, "Please select at least one teacher.")
+        return redirect('teacher_batch_list')
+
 
 def remove_teacher_from_batch(request, pk):
     assignment = get_object_or_404(TeacherBatch, pk=pk)
     assignment.teacher = None
     assignment.save()
-    messages.success(request, "Teacher removed from batch.")
     return redirect('teacher_batch_list')
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import TeacherBatch, Teacher
 
 def assign_teacher_modal(request, pk):
     assignment = get_object_or_404(TeacherBatch, pk=pk)
     teachers = Teacher.objects.all()
 
     if request.method == 'POST':
-        teacher_id = request.POST.get('teacher_id')
-        if teacher_id:
-            selected_teacher = Teacher.objects.get(pk=teacher_id)
-            assignment.teacher = selected_teacher
-            assignment.save()
-            messages.success(request, "Teacher assigned successfully.")
+        teacher_ids = request.POST.getlist('teacher_ids')
+        batch = assignment.batch
+        course = assignment.course
+        department = assignment.department
+
+        for tid in teacher_ids:
+            teacher = get_object_or_404(Teacher, pk=tid)
+            TeacherBatch.objects.get_or_create(
+                teacher=teacher,
+                batch=batch,
+                course=course,
+                department=department
+            )
+
         return redirect('teacher_batch_list')
 
     return render(request, 'partials/assign_teacher_modal.html', {

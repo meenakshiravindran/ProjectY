@@ -2,14 +2,43 @@
 {% block title %}{{ edit_mode|default:False|yesno:"Edit Assignment,Assign Teacher" }}{% endblock %}
 
 {% block content %}
-<h2 class="mb-3">{{ edit_mode|default:False|yesno:"Edit Assignment,Assign Teacher to Batch" }}</h2>
+<div class="container mt-5" style="max-width: 700px;">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">{{ edit_mode|default:False|yesno:"Edit Assignment,Assign Teacher to Batch" }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
 
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        {{ form.as_p }}
+                <div class="mb-3">
+                    <label for="id_department" class="form-label">Department:</label>
+                    {{ form.department }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_teacher" class="form-label">Teacher:</label>
+                    {{ form.teacher }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_course" class="form-label">Course:</label>
+                    {{ form.course }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_batch" class="form-label">Batch:</label>
+                    {{ form.batch }}
+                </div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-success me-2">
+                        {{ edit_mode|default:False|yesno:"Update,Assign" }}
+                    </button>
+                    <a href="{% url 'teacher_batch_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
-    <button type="submit" class="btn btn-success">{{ edit_mode|default:False|yesno:"Update,Assign" }}</button>
-    <a href="{% url 'teacher_batch_list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+</div>
 {% endblock %}

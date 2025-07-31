@@ -34,19 +34,64 @@
         </td>
     </tr>
 
-    <tr class="batch-row" id="batch-{{ course.course_id }}" style="display:none;">
+    <tr class="batch-row" id="batch-{{ course.course_id }}" style="display: none;">
         <td colspan="7">
             <strong>Batches:</strong>
-            <ul>
-                {% for batch in course.batch_set.all %}
-                <li>{{ batch.acad_year }} - {{ batch.part }}</li>
-                {% empty %}
-                <li>No batches found.</li>
-                {% endfor %}
-            </ul>
-            <a href="{% url 'add_batch' course.course_id %}" class="btn btn-sm btn-success">Add Batch</a>
+    
+            <!-- Add Batch Button triggers modal -->
+            <div class="mt-2">
+                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addBatchModal-{{ course.course_id }}">
+                    Add Batch
+                </button>
+            </div>
+    
+            <!-- Batches Table -->
+            <div class="table-responsive w-75 mt-3">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Academic Year</th>
+                            <th>Part</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in course.batch_set.all %}
+                        <tr>
+                            <td>{{ batch.acad_year }}</td>
+                            <td>{{ batch.part }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="2" class="text-center">No batches found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+    
+            <!-- Modal Structure (inserted per course) -->
+            <div class="modal fade" id="addBatchModal-{{ course.course_id }}" tabindex="-1" aria-labelledby="addBatchLabel-{{ course.course_id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content shadow">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title" id="addBatchLabel-{{ course.course_id }}">Add Batch - {{ course.name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="post" action="{% url 'add_batch' course.course_id %}">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                {{ batch_form.as_p }}  {# This must be passed from the view #}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">Save</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+    
         </td>
     </tr>
+    
     {% endfor %}
 
     </tbody>

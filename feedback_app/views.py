@@ -282,3 +282,26 @@ def delete_teacher_batch(request, pk):
         messages.success(request, "Assignment removed successfully.")
         return redirect('teacher_batch_list')
     return render(request, 'delete_teacher_batch.html', {'assignment': assignment})
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+def assign_teacher_to_batch(request, pk):
+    assignment = get_object_or_404(TeacherBatch, pk=pk)
+    if request.method == 'POST':
+        form = TeacherAssignForm(request.POST, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Teacher assigned successfully.")
+            return redirect('teacher_batch_list')
+    else:
+        form = TeacherAssignForm(instance=assignment)
+    return render(request, 'assign_teacher_to_batch.html', {'form': form})
+
+def remove_teacher_from_batch(request, pk):
+    assignment = get_object_or_404(TeacherBatch, pk=pk)
+    assignment.teacher = None
+    assignment.save()
+    messages.success(request, "Teacher removed from batch.")
+    return redirect('teacher_batch_list')

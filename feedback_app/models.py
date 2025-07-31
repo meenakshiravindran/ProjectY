@@ -45,7 +45,7 @@ class Batch(models.Model):
     part = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"{self.course.name} - {self.acad_year} - {self.part}"
+        return f"{self.acad_year} - {self.part}"
 
 
 # -------------------

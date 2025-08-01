@@ -1,40 +1,43 @@
 {% extends 'base.html' %}
-{% block title %}{{ edit_mode|default:False|yesno:"Edit Assignment,Assign Teacher" }}{% endblock %}
+{% block title %}Assign Teachers to Batch{% endblock %}
 
 {% block content %}
-<div class="container mt-5" style="max-width: 700px;">
+<div class="container mt-5" style="max-width: 600px;">
     <div class="card shadow">
         <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">{{ edit_mode|default:False|yesno:"Edit Assignment,Assign Teacher to Batch" }}</h4>
+            <h4 class="mb-0">Assign Teacher(s) to Batch</h4>
         </div>
         <div class="card-body">
             <form method="post">
                 {% csrf_token %}
 
                 <div class="mb-3">
-                    <label for="id_department" class="form-label">Department:</label>
-                    {{ form.department }}
-                </div>
-
-                <div class="mb-3">
-                    <label for="id_teacher" class="form-label">Teacher:</label>
-                    {{ form.teacher }}
-                </div>
-
-                <div class="mb-3">
-                    <label for="id_course" class="form-label">Course:</label>
+                    <label for="id_course" class="form-label">Course</label>
                     {{ form.course }}
                 </div>
 
                 <div class="mb-3">
-                    <label for="id_batch" class="form-label">Batch:</label>
+                    <label for="id_batch" class="form-label">Batch</label>
                     {{ form.batch }}
                 </div>
 
+                <div class="mb-3">
+                    <label for="id_department" class="form-label">Department</label>
+                    {{ form.department }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Select Teacher(s)</label>
+                    {% for checkbox in form.teachers %}
+                    <div class="form-check">
+                        {{ checkbox.tag }}
+                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+
                 <div class="d-flex justify-content-end mt-3">
-                    <button type="submit" class="btn btn-success me-2">
-                        {{ edit_mode|default:False|yesno:"Update,Assign" }}
-                    </button>
+                    <button type="submit" class="btn btn-success me-2">{% if edit_mode %}Update{% else %}Assign{% endif %}</button>
                     <a href="{% url 'teacher_batch_list' %}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
@@ -42,3 +45,4 @@
     </div>
 </div>
 {% endblock %}
+

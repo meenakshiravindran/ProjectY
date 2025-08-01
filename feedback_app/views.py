@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import Programme, Department,TeacherBatch
 from django.shortcuts import get_object_or_404
-from .forms import ProgrammeForm,TeacherAssignForm
+from .forms import ProgrammeForm,TeacherBatchAssignForm
 
 def user_login(request):
     if request.method == 'POST':
@@ -231,108 +231,133 @@ def reset_teacher_password(request, user_id):
         form = SetPasswordForm(user)
     return render(request, 'reset_password.html', {'form': form, 'username': user.username})
 
-# -------------------------------
-# View: List All Assignments
-# -------------------------------
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import TeacherBatch
+from .forms import TeacherBatchAssignForm
+from collections import defaultdict
+from django.db.models import Prefetch
+
+from collections import defaultdict
+from django.shortcuts import render
+from .models import TeacherBatch
+
 @login_required
 def teacher_batch_list(request):
-    assignments = TeacherBatch.objects.select_related('course', 'batch', 'department', 'teacher')
-    teachers = Teacher.objects.all()
-    return render(request, 'teacher_batch_list.html', {
-        'assignments': assignments,
-        'teachers': teachers
-    })
+    assignments = TeacherBatch.objects.select_related('teacher', 'batch', 'course', 'department').all()
 
-# -------------------------------
-# View: Add Assignment
-# -------------------------------
+    grouped = defaultdict(list)
+    grouped_info = {}
+
+    for a in assignments:
+        # Compose keys based on related objects' IDs to avoid ambiguity
+        key = (a.batch.batch_id, a.course.course_id, a.department.dept_id)
+
+        # Store the names/info only once per group
+        if key not in grouped_info:
+            batch_str = f"{a.batch.acad_year} - {a.batch.part}"
+            course_str = f"{a.course.code} - {a.course.name}"
+            dept_str = a.department.dept_name
+            grouped_info[key] = {
+                'batch': batch_str,
+                'course': course_str,
+                'department': dept_str,
+                'batch_id': a.batch.batch_id,
+                'course_id': a.course.course_id,
+                'department_id': a.department.dept_id,
+            }
+
+        # Append teacher names to the group
+        grouped[key].append(a.teacher.name)
+
+    # Prepare list to send to template
+    grouped_list = []
+    for key, teachers in grouped.items():
+        info = grouped_info[key]
+        info['teachers'] = teachers
+        grouped_list.append(info)
+
+    return render(request, 'teacher_batch_list.html', {'assignments': grouped_list})
+
+
+
+# ✅ View 2: Add Assignment (Multiple Teachers at Once)
 @login_required
-def add_teacher_batch(request):
+def assign_teacher_batch(request):
     if request.method == 'POST':
-        form = TeacherAssignForm(request.POST)
+        form = TeacherBatchAssignForm(request.POST)
         if form.is_valid():
-            form.save()
+            teachers = form.cleaned_data['teachers']
+            batch = form.cleaned_data['batch']
+            course = form.cleaned_data['course']
+            department = form.cleaned_data['department']
+
+            for teacher in teachers:
+                TeacherBatch.objects.create(
+                    teacher=teacher,
+                    batch=batch,
+                    course=course,
+                    department=department
+                )
+
             return redirect('teacher_batch_list')
     else:
-        form = TeacherAssignForm()
+        form = TeacherBatchAssignForm()
+
     return render(request, 'add_teacher_batch.html', {'form': form})
 
-
-# -------------------------------
-# View: Edit Assignment
-# -------------------------------
 @login_required
-def edit_teacher_batch(request, pk):
-    assignment = get_object_or_404(TeacherBatch, pk=pk)
+def edit_teacher_batch_group(request, batch_id, course_id, dept_id):
+    batch_obj = get_object_or_404(Batch, batch_id=batch_id)
+    course_obj = get_object_or_404(Course, course_id=course_id)
+    dept_obj = get_object_or_404(Department, dept_id=dept_id)
+
+    assignments = TeacherBatch.objects.filter(
+        batch=batch_obj,
+        course=course_obj,
+        department=dept_obj,
+    )
+
+    assigned_teachers = [a.teacher.teacher_id for a in assignments]
+
+
     if request.method == 'POST':
-        form = TeacherAssignForm(request.POST, instance=assignment)
+        form = TeacherBatchAssignForm(request.POST)
         if form.is_valid():
-            form.save()
+            assignments.delete()
+
+            teachers = form.cleaned_data['teachers']
+            for teacher in teachers:
+                TeacherBatch.objects.create(
+                    teacher=teacher,
+                    batch=batch_obj,
+                    course=course_obj,
+                    department=dept_obj
+                )
             return redirect('teacher_batch_list')
     else:
-        form = TeacherAssignForm(instance=assignment)
+        form = TeacherBatchAssignForm(initial={
+            'batch': batch_obj,
+            'course': course_obj,
+            'department': dept_obj,
+            'teachers': assigned_teachers
+        })
+
     return render(request, 'add_teacher_batch.html', {'form': form, 'edit_mode': True})
 
 
-# -------------------------------
-# View: Delete Assignment
-# -------------------------------
+# ✅ View 4: Delete an Assignment
 @login_required
-def delete_teacher_batch(request, pk):
-    assignment = get_object_or_404(TeacherBatch, pk=pk)
+def delete_teacher_batch_group(request, batch_id, course_id, dept_id):
     if request.method == 'POST':
-        assignment.delete()
-        return redirect('teacher_batch_list')
-    return render(request, 'delete_teacher_batch.html', {'assignment': assignment})
-
-
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from .models import TeacherBatch, Teacher
-
-def assign_teacher_to_batch(request, pk):
-    assignment = get_object_or_404(TeacherBatch, pk=pk)
-    if request.method == 'POST':
-        teacher_ids = request.POST.getlist('teacher_ids')  # no brackets []
-        if teacher_ids:
-            # Pick the first one selected
-            assignment.teacher = Teacher.objects.get(pk=teacher_ids[0])
-            assignment.save()
-            messages.success(request, "Teacher assigned successfully.")
-        else:
-            messages.warning(request, "Please select at least one teacher.")
-        return redirect('teacher_batch_list')
-
-
-def remove_teacher_from_batch(request, pk):
-    assignment = get_object_or_404(TeacherBatch, pk=pk)
-    assignment.teacher = None
-    assignment.save()
+        TeacherBatch.objects.filter(
+            batch__batch_id=batch_id,
+            course__course_id=course_id,
+            department__dept_id=dept_id,
+        ).delete()
+        messages.success(request, "All assignments deleted successfully.")
     return redirect('teacher_batch_list')
 
 
-def assign_teacher_modal(request, pk):
-    assignment = get_object_or_404(TeacherBatch, pk=pk)
-    teachers = Teacher.objects.all()
-
-    if request.method == 'POST':
-        teacher_ids = request.POST.getlist('teacher_ids')
-        batch = assignment.batch
-        course = assignment.course
-        department = assignment.department
-
-        for tid in teacher_ids:
-            teacher = get_object_or_404(Teacher, pk=tid)
-            TeacherBatch.objects.get_or_create(
-                teacher=teacher,
-                batch=batch,
-                course=course,
-                department=department
-            )
-
-        return redirect('teacher_batch_list')
-
-    return render(request, 'partials/assign_teacher_modal.html', {
-        'assignment': assignment,
-        'teachers': teachers
-    })

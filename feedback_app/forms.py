@@ -134,20 +134,23 @@ class TeacherEditForm(forms.ModelForm):
             'fb_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }   
 
+from django import forms
+from .models import TeacherBatch, Teacher, Batch, Course, Department
 
-class TeacherAssignForm(forms.ModelForm):
-    class Meta:
-        model = TeacherBatch
-        fields = ['department', 'teacher', 'batch', 'course']
-        labels = {
-            'department': 'Department',
-            'teacher': 'Teacher',
-            'course': 'Course',
-            'batch': 'Batch',
-        }
-        widgets = {
-            'department': forms.Select(attrs={'class': 'form-select'}),
-            'teacher': forms.Select(attrs={'class': 'form-select'}),
-            'course': forms.Select(attrs={'class': 'form-select'}),
-            'batch': forms.Select(attrs={'class': 'form-select'}),
-        }
+class TeacherBatchAssignForm(forms.Form):
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    batch = forms.ModelChoiceField(
+        queryset=Batch.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    teachers = forms.ModelMultipleChoiceField(
+        queryset=Teacher.objects.all(),
+        widget=forms.CheckboxSelectMultiple()
+    )

@@ -28,12 +28,13 @@ urlpatterns = [
     path('teacher/<int:user_id>/change-password/', views.change_teacher_password, name='change_teacher_password'),
     path('teacher/<int:user_id>/reset-password/', views.reset_teacher_password, name='reset_teacher_password'),
 
-    path('assignments/', views.teacher_batch_list, name='teacher_batch_list'),
-    path('assignments/add/', views.add_teacher_batch, name='add_teacher_batch'),
-    path('assignments/edit/<int:pk>/', views.edit_teacher_batch, name='edit_teacher_batch'),
-    path('assignments/delete/<int:pk>/', views.delete_teacher_batch, name='delete_teacher_batch'),
-    path('assign-teacher/<int:pk>/', views.assign_teacher_modal, name='assign_teacher_to_batch'),
+    path('teacher-batch/', views.teacher_batch_list, name='teacher_batch_list'),
+    path('teacher-batch/add/', views.assign_teacher_batch, name='assign_teacher_batch'),
+    path('teacher-batch/edit/<int:batch_id>/<int:course_id>/<int:dept_id>/', views.edit_teacher_batch_group, name='edit_teacher_batch_group'),
+    path('teacher-batch/delete/<int:batch_id>/<int:course_id>/<int:dept_id>/', views.delete_teacher_batch_group, name='delete_teacher_batch_group'),
 
 ]
+
+
     
 

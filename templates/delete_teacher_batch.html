@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}Remove Assignment{% endblock %}
+{% block title %}Confirm Delete Assignments{% endblock %}
 
 {% block content %}
-<h2 class="mb-3">Remove Assignment</h2>
-<p>Are you sure you want to remove the assignment of <strong>{{ assignment.teacher.name }}</strong> from <strong>{{ assignment.batch.acad_year }} - Part {{ assignment.batch.part }}</strong>?</p>
-
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Yes, Remove</button>
-    <a href="{% url 'teacher_batch_list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="container mt-4">
+    <h2 class="mb-3 text-danger">Confirm Delete</h2>
+    <p>Are you sure you want to delete all assignments for:</p>
+    <ul>
+        <li><strong>Batch:</strong> {{ batch }}</li>
+        <li><strong>Course:</strong> {{ course }}</li>
+        <li><strong>Department:</strong> {{ department }}</li>
+    </ul>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'teacher_batch_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

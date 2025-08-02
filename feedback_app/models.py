@@ -98,7 +98,7 @@ class TeacherBatch(models.Model):
 # Feedback Setup
 # -------------------
 class Feedback(models.Model):
-    fb_id = models.CharField(max_length=10, primary_key=True)
+    fb_id = models.AutoField(primary_key=True)
     part = models.CharField(max_length=20)
     acad_year = models.CharField(max_length=10)
 
@@ -121,7 +121,7 @@ class FeedbackQType(models.Model):
 # Feedback Questions
 # -------------------
 class FeedbackQuestion(models.Model):
-    q_id = models.CharField(max_length=10, primary_key=True)
+    q_id = models.AutoField(primary_key=True)
     q_desc = models.TextField()
     q_type = models.CharField(max_length=20)  # e.g., 'MCQ' or 'DESC'
     active = models.BooleanField(default=True)

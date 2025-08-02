@@ -502,9 +502,9 @@ def student_feedback_form(request):
     # Get only active questions
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
     
-    if not questions.exists():
-        messages.info(request, "No feedback questions are available at the moment.")
-        return render(request, 'student_feedback/no_questions.html')
+    # if not questions.exists():
+    #     messages.info(request, "No feedback questions are available at the moment.")
+    #     return render(request, 'no_questions.html')
     
     # Generate a unique session ID for this feedback submission
     if 'student_feedback_session' not in request.session:
@@ -667,9 +667,9 @@ def student_feedback_form(request):
     # Get only active questions
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
     
-    if not questions.exists():
-        messages.info(request, "No feedback questions are available at the moment.")
-        return render(request, 'student_feedback/no_questions.html')
+    # if not questions.exists():
+    #     messages.info(request, "No feedback questions are available at the moment.")
+    #     return render(request, 'no_questions.html')
     
     # Generate a unique session ID for this feedback submission
     if 'student_feedback_session' not in request.session:
@@ -695,7 +695,7 @@ def student_feedback_form(request):
         'session_id': request.session['student_feedback_session'],
         'total_questions': questions.count()
     }
-    return render(request, 'student_feedback/feedback_form.html', context)
+    return render(request, 'feedback_form.html', context)
 
 
 # Add these views to your existing views.py
@@ -713,9 +713,9 @@ def student_feedback_form(request):
     # Get only active questions
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
     
-    if not questions.exists():
-        messages.info(request, "No feedback questions are available at the moment.")
-        return render(request, 'student_feedback/no_questions.html')
+    # if not questions.exists():
+    #     messages.info(request, "No feedback questions are available at the moment.")
+    #     return render(request, 'no_questions.html')
     
     # Generate a unique session ID for this feedback submission
     if 'student_feedback_session' not in request.session:

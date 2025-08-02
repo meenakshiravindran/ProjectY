@@ -229,9 +229,15 @@
       </form>
     </div>
   </div>
-  <div class="card glass-card w-100" style="max-width: 500px; margin-top: 30px;">
-    <h4 class="text-white text-center mb-3" style="color: white !important;">Want to give Feedback?</h4>
-    <a href="#" class="btn btn-outline-light w-100 disabled-link">Go to Feedback Dashboard</a>
+  <div class="feedback-link">
+    <div class="student-note">
+      <h6 class="mb-2">👨‍🎓 Are you a student?</h6>
+      <p class="mb-3 small text-muted">Click below to provide anonymous feedback</p>
+    </div>
+    <a href="{% url 'student_feedback_form' %}" class="btn-feedback">
+      📝 Give Feedback
+    </a>
+  </div>
   </div>
   <script>
     const togglePassword = document.getElementById("togglePassword");

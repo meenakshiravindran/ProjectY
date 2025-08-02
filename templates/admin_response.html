@@ -1,0 +1,242 @@
+<!-- templates/admin_responses.html -->
+{% extends 'base.html' %}
+{% block title %}Student Feedback Responses - Admin{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">📊 Student Feedback Responses</h3>
+                    <small>Review all anonymous student feedback submissions</small>
+                </div>
+                <div class="card-body">
+
+                    <!-- Summary Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h3>{{ total_questions }}</h3>
+                                    <p class="mb-0">Total Questions</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h3>{{ total_feedback_submissions }}</h3>
+                                    <p class="mb-0">Student Submissions</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h3>
+                                        {% for session in feedback_sessions %}
+                                        {% if forloop.first %}{{ session.total_responses }}{% endif %}
+                                        {% endfor %}
+                                        {% if not feedback_sessions %}0{% endif %}
+                                    </h3>
+                                    <p class="mb-0">Avg Responses/Student</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-secondary text-white">
+                                <div class="card-body text-center">
+                                    <h3>
+                                        {% for session in feedback_sessions %}
+                                        {% if forloop.last %}{{ session.submitted_at|date:"M d" }}{% endif %}
+                                        {% endfor %}
+                                        {% if not feedback_sessions %}No Data{% endif %}
+                                    </h3>
+                                    <p class="mb-0">Latest Submission</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-tabs" id="responseTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="individual-tab" data-bs-toggle="tab"
+                                data-bs-target="#individual" type="button" role="tab">
+                                📋 Individual Responses
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary"
+                                type="button" role="tab">
+                                📊 Summary Analysis
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="responseTabContent">
+                        <!-- Individual Responses Tab -->
+                        <div class="tab-pane fade show active" id="individual" role="tabpanel">
+                            <div class="mt-4">
+                                <h5 class="mb-3">📝 Individual Student Responses</h5>
+
+                                {% for session in feedback_sessions %}
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">
+                                                <span class="badge bg-primary me-2">Feedback #{{ session.feedback_number
+                                                    }}</span>
+                                                Anonymous Student
+                                            </h6>
+                                            <small class="text-muted">
+                                                Submitted: {{ session.submitted_at|date:"M d, Y H:i" }}
+                                                ({{ session.total_responses }} responses)
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            {% for response in session.responses %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="border rounded p-3 h-100">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <strong class="text-primary">{{ response.question.q_id
+                                                            }}</strong>
+                                                        <span
+                                                            class="badge bg-{% if response.question.q_type == 'MCQ' %}info{% else %}success{% endif %} badge-sm">
+                                                            {{ response.question.q_type }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="small text-muted mb-2">{{ response.question.q_desc }}</p>
+                                                    <div class="answer-box p-2 bg-light rounded">
+                                                        {% if response.selected_option %}
+                                                        <strong>{{ response.selected_option.answer }}</strong>
+                                                        {% else %}
+                                                        {{ response.response_text }}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="alert alert-info text-center">
+                                    <h5>📝 No feedback submissions yet</h5>
+                                    <p>Students haven't submitted any feedback responses yet.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Summary Analysis Tab -->
+                        <div class="tab-pane fade" id="summary" role="tabpanel">
+                            <div class="mt-4">
+                                <h5 class="mb-3">📊 Question-wise Summary</h5>
+
+                                {% for item in questions_with_summary %}
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span
+                                                    class="badge bg-{% if item.type == 'MCQ' %}primary{% else %}info{% endif %} me-2">
+                                                    {{ item.type }}
+                                                </span>
+                                                <strong>{{ item.question.q_id }}</strong>
+                                            </div>
+                                            <small class="text-muted">{{ item.total_responses }} responses</small>
+                                        </div>
+                                        <div class="mt-2">
+                                            <strong>{{ item.question.q_desc }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+
+                                        {% if item.type == 'MCQ' %}
+                                        {% if item.option_counts %}
+                                        <div class="row">
+                                            {% for option, count in item.option_counts.items %}
+                                            <div class="col-md-6 mb-3">
+                                                <div
+                                                    class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                                    <span>{{ option }}</span>
+                                                    <div>
+                                                        <span class="badge bg-primary fs-6 me-2">{{ count }}</span>
+                                                        <small class="text-muted">
+                                                            ({% widthratio count item.total_responses 100 %}%)
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> No responses yet for this question.
+                                        </div>
+                                        {% endif %}
+
+                                        {% elif item.type == 'DESC' %}
+                                        {% if item.responses %}
+                                        <div class="accordion" id="accordion{{ item.question.q_id }}">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapse{{ item.question.q_id }}">
+                                                        View All {{ item.total_responses }} Descriptive Responses
+                                                    </button>
+                                                </h2>
+                                                <div id="collapse{{ item.question.q_id }}"
+                                                    class="accordion-collapse collapse"
+                                                    data-bs-parent="#accordion{{ item.question.q_id }}">
+                                                    <div class="accordion-body">
+                                                        <div class="row">
+                                                            {% for response in item.responses %}
+                                                            <div class="col-12 mb-3">
+                                                                <div class="card bg-light">
+                                                                    <div class="card-body">
+                                                                        <div
+                                                                            class="d-flex justify-content-between align-items-start mb-2">
+                                                                            <span class="badge bg-primary">Feedback #{{
+                                                                                response.feedback_number }}</span>
+                                                                            <small class="text-muted">
+                                                                                {{ response.submitted_at|date:"M d, Y
+                                                                                H:i" }}
+                                                                            </small>
+                                                                        </div>
+                                                                        <p class="mb-0">{{ response.text }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> No responses yet for this question.
+                                        </div>
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="alert alert-warning text-center">
+                                    <h4>📝 No feedback responses yet</h4>
+                                    <p>Students haven't submitted any feedback responses yet.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -135,11 +135,12 @@ class FeedbackQuestion(models.Model):
 # -------------------
 class FeedbackQOption(models.Model):
     q = models.ForeignKey(FeedbackQuestion, on_delete=models.CASCADE)
-    ans_id = models.CharField(max_length=10)
-    answer = models.CharField(max_length=200)
+    ans_id = models.CharField(max_length=10)  # Custom ID (not necessary for options)
+    answer = models.CharField(max_length=200)  # The text of the option (e.g., "Excellent")
 
     def __str__(self):
-        return self.answer
+        return self.answer  # Ensure the option text is returned
+
 
 
 # -------------------
@@ -156,3 +157,23 @@ class TeacherFeedbackResponse(models.Model):
 
     def __str__(self):
         return f"{self.teacher_batch} - {self.q}"
+
+
+# Add this new model to your existing models.py
+
+
+class StudentFeedbackResponse(models.Model):
+    response_id = models.AutoField(primary_key=True)
+    question = models.ForeignKey(FeedbackQuestion, on_delete=models.CASCADE)
+    response_text = models.TextField(blank=True, null=True)  # For descriptive questions
+    selected_option = models.ForeignKey(FeedbackQOption, on_delete=models.CASCADE, blank=True, null=True)  # For MCQ
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    session_id = models.CharField(max_length=100)  # To group responses from same student
+    feedback_number = models.IntegerField(default=1)  # Sequential numbering for anonymous feedback
+    
+    def __str__(self):
+        return f"Feedback #{self.feedback_number} - {self.question.q_desc[:30]}..."
+    
+    class Meta:
+        db_table = 'student_feedback_response'
+        ordering = ['feedback_number', 'question__q_id']

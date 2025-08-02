@@ -38,6 +38,22 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'teacher_batch_list' %}">Assign Teacher</a>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="feedbackMenu" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Feedback
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="feedbackMenu">
+                                <li><a class="dropdown-item" href="{% url 'add_question' %}">➕ Add Question</a></li>
+                                <li><a class="dropdown-item" href="{% url 'list_questions' %}">📋 View Questions</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'admin_student_feedback_responses' %}">📊 View Student Responses</a>
+                                </li>
+                            </ul>
+                        </li>
+
                         {% endif %}
                         <!-- Add more role-based menus here if needed -->
                     {% endif %}

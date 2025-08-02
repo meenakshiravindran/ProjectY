@@ -32,6 +32,21 @@ urlpatterns = [
     path('teacher-batch/add/', views.assign_teacher_batch, name='assign_teacher_batch'),
     path('teacher-batch/edit/<int:batch_id>/<int:course_id>/<int:dept_id>/', views.edit_teacher_batch_group, name='edit_teacher_batch_group'),
     path('teacher-batch/delete/<int:batch_id>/<int:course_id>/<int:dept_id>/', views.delete_teacher_batch_group, name='delete_teacher_batch_group'),
+    path('questions/', views.list_questions, name='list_questions'),
+    path('questions/add/', views.add_question, name='add_question'),
+    path('questions/<str:q_id>/delete/', views.delete_question, name='delete_question'),
+    path('questions/<str:q_id>/toggle/', views.toggle_question_status, name='toggle_question_status'),
+    
+    # Option management URLs
+    path('questions/<str:q_id>/options/', views.add_options, name='add_options'),
+    path('options/<int:option_id>/delete/', views.delete_option, name='delete_option'),
+
+     path('student-feedback/', views.student_feedback_form, name='student_feedback_form'),
+    path('student-feedback/submit/', views.submit_student_feedback, name='submit_student_feedback'),
+    
+    # Admin Feedback Response URLs (login required)
+    path('admin/student-feedback-responses/', views.admin_student_feedback_responses, name='admin_student_feedback_responses'),
+
 
 ]
 

@@ -154,3 +154,32 @@ class TeacherBatchAssignForm(forms.Form):
         queryset=Teacher.objects.all(),
         widget=forms.CheckboxSelectMultiple()
     )
+
+from django import forms
+from .models import FeedbackQuestion, FeedbackQOption
+
+class FeedbackQuestionForm(forms.ModelForm):
+    class Meta:
+        model = FeedbackQuestion
+        fields = ['q_id', 'q_desc', 'q_type', 'active']
+        widgets = {
+            'q_type': forms.Select(choices=[('MCQ', 'MCQ'), ('DESC', 'Descriptive')]),
+            'q_desc': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    # Remove the options field from here since we're handling it separately
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['q_id'].widget.attrs.update({'class': 'form-control'})
+        self.fields['q_desc'].widget.attrs.update({'class': 'form-control'})
+        self.fields['q_type'].widget.attrs.update({'class': 'form-control'})
+
+class FeedbackQOptionForm(forms.ModelForm):
+    class Meta:
+        model = FeedbackQOption
+        fields = ['q', 'ans_id', 'answer']
+        widgets = {
+            'q': forms.HiddenInput(),
+            'ans_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'answer': forms.TextInput(attrs={'class': 'form-control'}),
+        }

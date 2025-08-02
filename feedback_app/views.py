@@ -361,3 +361,542 @@ def delete_teacher_batch_group(request, batch_id, course_id, dept_id):
     return redirect('teacher_batch_list')
 
 
+# views.py - Enhanced views with improved add_options and toggle functionality
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .forms import FeedbackQuestionForm, FeedbackQOptionForm
+from .models import FeedbackQuestion, FeedbackQOption
+
+def add_question(request):
+    if request.method == 'POST':
+        form = FeedbackQuestionForm(request.POST)
+        
+        if form.is_valid():
+            # Save the question first
+            question = form.save()
+
+            # If it's an MCQ, handle adding options
+            if form.cleaned_data['q_type'] == 'MCQ':
+                # Get options from the POST data (comma-separated list of options)
+                options_text = request.POST.get('options', '')
+                if options_text:  # Only proceed if options are provided
+                    options = [opt.strip() for opt in options_text.split(',') if opt.strip()]
+                    
+                    # Save the options for this question with proper ans_id
+                    for i, option_text in enumerate(options, 1):
+                        FeedbackQOption.objects.create(
+                            q=question, 
+                            ans_id=f"opt_{i}",  # Generate a proper ans_id
+                            answer=option_text
+                        )
+                    
+                    messages.success(request, f'Question "{question.q_desc}" created successfully with {len(options)} options!')
+                else:
+                    messages.warning(request, 'Question created but no options were added. You can add options later.')
+            else:
+                messages.success(request, f'Descriptive question "{question.q_desc}" created successfully!')
+
+            # Redirect to the list of questions after saving
+            return redirect('list_questions')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+
+    else:
+        form = FeedbackQuestionForm()
+
+    return render(request, 'add_question.html', {'form': form})
+
+# List Questions
+def list_questions(request):
+    questions = FeedbackQuestion.objects.all().order_by('-active', 'q_id')  # Show active questions first
+    return render(request, 'list_questions.html', {'questions': questions})
+
+# Simplified Add Options for MCQ (handles both single and multiple options)
+def add_options(request, q_id):
+    question = get_object_or_404(FeedbackQuestion, pk=q_id)
+    
+    if question.q_type != 'MCQ':
+        messages.error(request, 'Options can only be added to MCQ questions.')
+        return redirect('list_questions')
+    
+    if request.method == 'POST':
+        options_text = request.POST.get('options_text', '')
+        if options_text:
+            options = [opt.strip() for opt in options_text.split(',') if opt.strip()]
+            existing_count = FeedbackQOption.objects.filter(q=question).count()
+            
+            for i, option_text in enumerate(options, existing_count + 1):
+                FeedbackQOption.objects.create(
+                    q=question,
+                    ans_id=f"opt_{i}",
+                    answer=option_text
+                )
+            
+            if len(options) == 1:
+                messages.success(request, f'Option "{options[0]}" added successfully!')
+            else:
+                messages.success(request, f'{len(options)} options added successfully!')
+            return redirect('add_options', q_id=q_id)
+        else:
+            messages.error(request, 'Please enter at least one option.')
+    
+    # GET request - display the form
+    options = FeedbackQOption.objects.filter(q=question).order_by('ans_id')
+    
+    return render(request, 'add_options.html', {
+        'question': question, 
+        'options': options
+    })
+
+# Delete Question View
+def delete_question(request, q_id):
+    question = get_object_or_404(FeedbackQuestion, q_id=q_id)
+    
+    if request.method == 'POST':
+        question_desc = question.q_desc
+        question.delete()
+        messages.success(request, f'Question "{question_desc}" deleted successfully!')
+        return redirect('list_questions')
+
+    return render(request, 'confirm_delete.html', {'question': question})
+
+# Toggle Question Active Status
+def toggle_question_status(request, q_id):
+    question = get_object_or_404(FeedbackQuestion, q_id=q_id)
+    
+    if request.method == 'POST':
+        question.active = not question.active
+        question.save()
+        
+        status = "activated" if question.active else "deactivated"
+        messages.success(request, f'Question "{question.q_desc}" has been {status}!')
+    
+    return redirect('list_questions')
+
+# Delete individual option
+def delete_option(request, option_id):
+    option = get_object_or_404(FeedbackQOption, id=option_id)
+    question_id = option.q.q_id
+    
+    if request.method == 'POST':
+        option_text = option.answer
+        option.delete()
+        messages.success(request, f'Option "{option_text}" deleted successfully!')
+    
+    return redirect('add_options', q_id=question_id)
+
+
+# Add these views to your existing views.py
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import FeedbackQuestion, FeedbackQOption, StudentFeedbackResponse
+import uuid
+import json
+
+def student_feedback_form(request):
+    """Display feedback form to students (no login required)"""
+    # Get only active questions
+    questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
+    
+    if not questions.exists():
+        messages.info(request, "No feedback questions are available at the moment.")
+        return render(request, 'student_feedback/no_questions.html')
+    
+    # Generate a unique session ID for this feedback submission
+    if 'student_feedback_session' not in request.session:
+        request.session['student_feedback_session'] = str(uuid.uuid4())
+    
+    # Get MCQ questions with their options
+    mcq_questions = []
+    desc_questions = []
+    
+    for question in questions:
+        if question.q_type == 'MCQ':
+            options = FeedbackQOption.objects.filter(q=question).order_by('ans_id')
+            mcq_questions.append({
+                'question': question,
+                'options': options
+            })
+        elif question.q_type == 'DESC':
+            desc_questions.append(question)
+    
+    context = {
+        'mcq_questions': mcq_questions,
+        'desc_questions': desc_questions,
+        'session_id': request.session['student_feedback_session'],
+        'total_questions': questions.count()
+    }
+    return render(request, 'feedback_form.html', context)
+
+@csrf_exempt
+def submit_student_feedback(request):
+    """Handle student feedback submission"""
+    if request.method == 'POST':
+        try:
+            session_id = request.session.get('student_feedback_session')
+            if not session_id:
+                return JsonResponse({'success': False, 'error': 'Session expired. Please refresh the page.'})
+            
+            # Check if feedback already submitted for this session
+            existing_responses = StudentFeedbackResponse.objects.filter(session_id=session_id)
+            if existing_responses.exists():
+                return JsonResponse({'success': False, 'error': 'Feedback already submitted from this session.'})
+            
+            # Parse form data
+            responses_saved = 0
+            questions = FeedbackQuestion.objects.filter(active=True)
+            
+            for question in questions:
+                if question.q_type == 'MCQ':
+                    option_id = request.POST.get(f'question_{question.q_id}')
+                    if option_id:
+                        try:
+                            option = FeedbackQOption.objects.get(id=option_id, q=question)
+                            StudentFeedbackResponse.objects.create(
+                                question=question,
+                                selected_option=option,
+                                session_id=session_id
+                            )
+                            responses_saved += 1
+                        except FeedbackQOption.DoesNotExist:
+                            continue
+                
+                elif question.q_type == 'DESC':
+                    response_text = request.POST.get(f'question_{question.q_id}', '').strip()
+                    if response_text:
+                        StudentFeedbackResponse.objects.create(
+                            question=question,
+                            response_text=response_text,
+                            session_id=session_id
+                        )
+                        responses_saved += 1
+            
+            if responses_saved > 0:
+                # Clear the session after successful submission
+                if 'student_feedback_session' in request.session:
+                    del request.session['student_feedback_session']
+                
+                return JsonResponse({
+                    'success': True, 
+                    'message': f'Thank you! Your feedback has been submitted successfully. ({responses_saved} responses recorded)'
+                })
+            else:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Please answer at least one question before submitting.'
+                })
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+@login_required
+def admin_student_feedback_responses(request):
+    """Admin view to see all student feedback responses"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin privileges required.")
+        return redirect('login')
+    
+    # Get all student responses grouped by question
+    questions_with_responses = []
+    questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
+    
+    for question in questions:
+        responses = StudentFeedbackResponse.objects.filter(question=question).order_by('submitted_at')
+        
+        if question.q_type == 'MCQ':
+            # Group MCQ responses by option
+            option_counts = {}
+            for response in responses:
+                if response.selected_option:
+                    option_text = response.selected_option.answer
+                    option_counts[option_text] = option_counts.get(option_text, 0) + 1
+            
+            questions_with_responses.append({
+                'question': question,
+                'type': 'MCQ',
+                'option_counts': option_counts,
+                'total_responses': responses.count()
+            })
+        
+        elif question.q_type == 'DESC':
+            # Get all descriptive responses
+            desc_responses = []
+            for response in responses:
+                if response.response_text:
+                    desc_responses.append({
+                        'text': response.response_text,
+                        'submitted_at': response.submitted_at
+                    })
+            
+            questions_with_responses.append({
+                'question': question,
+                'type': 'DESC',
+                'responses': desc_responses,
+                'total_responses': len(desc_responses)
+            })
+    
+    # Get total unique sessions (students who submitted)
+    total_sessions = StudentFeedbackResponse.objects.values('session_id').distinct().count()
+    
+    context = {
+        'questions_with_responses': questions_with_responses,
+        'total_questions': questions.count(),
+        'total_student_sessions': total_sessions
+    }
+    
+    return render(request, 'admin_responses.html', context)
+
+# Add these views to your existing views.py
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import FeedbackQuestion, FeedbackQOption, StudentFeedbackResponse
+import uuid
+import json
+
+def student_feedback_form(request):
+    """Display feedback form to students (no login required)"""
+    # Get only active questions
+    questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
+    
+    if not questions.exists():
+        messages.info(request, "No feedback questions are available at the moment.")
+        return render(request, 'student_feedback/no_questions.html')
+    
+    # Generate a unique session ID for this feedback submission
+    if 'student_feedback_session' not in request.session:
+        request.session['student_feedback_session'] = str(uuid.uuid4())
+    
+    # Get MCQ questions with their options
+    mcq_questions = []
+    desc_questions = []
+    
+    for question in questions:
+        if question.q_type == 'MCQ':
+            options = FeedbackQOption.objects.filter(q=question).order_by('ans_id')
+            mcq_questions.append({
+                'question': question,
+                'options': options
+            })
+        elif question.q_type == 'DESC':
+            desc_questions.append(question)
+    
+    context = {
+        'mcq_questions': mcq_questions,
+        'desc_questions': desc_questions,
+        'session_id': request.session['student_feedback_session'],
+        'total_questions': questions.count()
+    }
+    return render(request, 'student_feedback/feedback_form.html', context)
+
+
+# Add these views to your existing views.py
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import FeedbackQuestion, FeedbackQOption, StudentFeedbackResponse
+import uuid
+import json
+
+def student_feedback_form(request):
+    """Display feedback form to students (no login required)"""
+    # Get only active questions
+    questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
+    
+    if not questions.exists():
+        messages.info(request, "No feedback questions are available at the moment.")
+        return render(request, 'student_feedback/no_questions.html')
+    
+    # Generate a unique session ID for this feedback submission
+    if 'student_feedback_session' not in request.session:
+        request.session['student_feedback_session'] = str(uuid.uuid4())
+    
+    # Get MCQ questions with their options
+    mcq_questions = []
+    desc_questions = []
+    
+    for question in questions:
+        if question.q_type == 'MCQ':
+            options = FeedbackQOption.objects.filter(q=question).order_by('ans_id')
+            mcq_questions.append({
+                'question': question,
+                'options': options
+            })
+        elif question.q_type == 'DESC':
+            desc_questions.append(question)
+    
+    context = {
+        'mcq_questions': mcq_questions,
+        'desc_questions': desc_questions,
+        'session_id': request.session['student_feedback_session'],
+        'total_questions': questions.count()
+    }
+    return render(request, 'feedback_form.html', context)
+
+@csrf_exempt
+def submit_student_feedback(request):
+    """Handle student feedback submission"""
+    if request.method == 'POST':
+        try:
+            session_id = request.session.get('student_feedback_session')
+            if not session_id:
+                return JsonResponse({'success': False, 'error': 'Session expired. Please refresh the page.'})
+            
+            # Check if feedback already submitted for this session
+            existing_responses = StudentFeedbackResponse.objects.filter(session_id=session_id)
+            if existing_responses.exists():
+                return JsonResponse({'success': False, 'error': 'Feedback already submitted from this session.'})
+            
+            # Get all active questions
+            questions = FeedbackQuestion.objects.filter(active=True)
+            unanswered_questions = []
+            responses_to_save = []
+            
+            # Validate all questions are answered
+            for question in questions:
+                if question.q_type == 'MCQ':
+                    option_id = request.POST.get(f'question_{question.q_id}')
+                    if not option_id:
+                        unanswered_questions.append(f"Question {question.q_id}")
+                    else:
+                        try:
+                            option = FeedbackQOption.objects.get(id=option_id, q=question)
+                            responses_to_save.append({
+                                'question': question,
+                                'selected_option': option,
+                                'session_id': session_id
+                            })
+                        except FeedbackQOption.DoesNotExist:
+                            unanswered_questions.append(f"Question {question.q_id} (Invalid option)")
+                
+                elif question.q_type == 'DESC':
+                    response_text = request.POST.get(f'question_{question.q_id}', '').strip()
+                    if not response_text:
+                        unanswered_questions.append(f"Question {question.q_id}")
+                    else:
+                        responses_to_save.append({
+                            'question': question,
+                            'response_text': response_text,
+                            'session_id': session_id
+                        })
+            
+            # If there are unanswered questions, return error
+            if unanswered_questions:
+                return JsonResponse({
+                    'success': False, 
+                    'error': f'Please answer all questions. Missing answers for: {", ".join(unanswered_questions)}'
+                })
+            
+            # Get feedback number for this submission (sequential numbering)
+            feedback_count = StudentFeedbackResponse.objects.values('session_id').distinct().count()
+            feedback_number = feedback_count + 1
+            
+            # Save all responses
+            for response_data in responses_to_save:
+                StudentFeedbackResponse.objects.create(
+                    question=response_data['question'],
+                    selected_option=response_data.get('selected_option'),
+                    response_text=response_data.get('response_text'),
+                    session_id=session_id,
+                    feedback_number=feedback_number  # We'll add this field to model
+                )
+            
+            # Clear the session after successful submission
+            if 'student_feedback_session' in request.session:
+                del request.session['student_feedback_session']
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'Thank you! Your feedback has been submitted successfully. (Feedback #{feedback_number})'
+            })
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+@login_required
+def admin_student_feedback_responses(request):
+    """Admin view to see all student feedback responses organized by feedback number"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin privileges required.")
+        return redirect('login')
+    
+    # Get all feedback responses grouped by feedback_number (student)
+    feedback_sessions = []
+    unique_feedback_numbers = StudentFeedbackResponse.objects.values('feedback_number').distinct().order_by('feedback_number')
+    
+    for feedback_data in unique_feedback_numbers:
+        feedback_number = feedback_data['feedback_number']
+        responses = StudentFeedbackResponse.objects.filter(feedback_number=feedback_number).order_by('question__q_id')
+        
+        if responses.exists():
+            feedback_sessions.append({
+                'feedback_number': feedback_number,
+                'responses': responses,
+                'submitted_at': responses.first().submitted_at,
+                'total_responses': responses.count()
+            })
+    
+    # Get summary statistics
+    questions_with_summary = []
+    questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
+    
+    for question in questions:
+        responses = StudentFeedbackResponse.objects.filter(question=question)
+        
+        if question.q_type == 'MCQ':
+            # Group MCQ responses by option
+            option_counts = {}
+            total_responses = 0
+            for response in responses:
+                if response.selected_option:
+                    option_text = response.selected_option.answer
+                    option_counts[option_text] = option_counts.get(option_text, 0) + 1
+                    total_responses += 1
+            
+            questions_with_summary.append({
+                'question': question,
+                'type': 'MCQ',
+                'option_counts': option_counts,
+                'total_responses': total_responses
+            })
+        
+        elif question.q_type == 'DESC':
+            # Get all descriptive responses
+            desc_responses = []
+            for response in responses:
+                if response.response_text:
+                    desc_responses.append({
+                        'text': response.response_text,
+                        'feedback_number': response.feedback_number,
+                        'submitted_at': response.submitted_at
+                    })
+            
+            questions_with_summary.append({
+                'question': question,
+                'type': 'DESC',
+                'responses': desc_responses,
+                'total_responses': len(desc_responses)
+            })
+    
+    context = {
+        'feedback_sessions': feedback_sessions,
+        'questions_with_summary': questions_with_summary,
+        'total_questions': questions.count(),
+        'total_feedback_submissions': len(feedback_sessions)
+    }
+    
+    return render(request, 'admin_response.html', context)
+
+

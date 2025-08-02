@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Select a Teacher{% endblock %}
+
+{% block content %}
+<style>
+  .teacher-card {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+    margin-bottom: 20px;
+    transition: transform 0.2s ease;
+  }
+
+  .teacher-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .btn-feedback {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-feedback:hover {
+    background: #5a67d8;
+  }
+</style>
+
+<div class="container mt-5">
+  <h2 class="text-center mb-4" style="color:white;">Select a Teacher to Give Feedback</h2>
+  <div class="row justify-content-center">
+    {% for teacher in teachers %}
+      <div class="col-md-5 teacher-card text-center">
+        <h4>{{ teacher.name }}</h4>
+        <p>{{ teacher.designation }}</p>
+        <p>{{ teacher.dept.name }}</p>
+        <a href="{% url 'student_feedback_submit' teacher.id %}" class="btn-feedback">Give Feedback</a>
+      </div>
+    {% empty %}
+      <p class="text-center text-white">No active teachers found.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

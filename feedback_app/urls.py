@@ -46,10 +46,5 @@ urlpatterns = [
     
     # Admin Feedback Response URLs (login required)
     path('feedback-admin/student-responses/', views.admin_student_feedback_responses, name='admin_student_feedback_responses'),
-
-
 ]
-
-
-    
 

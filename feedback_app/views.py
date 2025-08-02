@@ -152,6 +152,8 @@ from django.contrib.auth.models import User
 from .models import Teacher
 from .forms import TeacherForm,TeacherEditForm  # Add TeacherEditForm separately (without password)
 
+from django.contrib.auth.models import Group
+from django.contrib import messages
 @login_required()
 
 def teacher_list(request):
@@ -160,13 +162,28 @@ def teacher_list(request):
 
 @login_required()
 
+
+
 def add_teacher(request):
     if request.method == 'POST':
         form = TeacherForm(request.POST)
         if form.is_valid():
             try:
-                form.save()
-                messages.success(request, "Teacher added successfully!")
+                # Save the form without committing to access the object
+                teacher = form.save(commit=False)
+                teacher.save()
+
+                # Get the role name from the related Role model
+                role_name = teacher.role.role_name.lower().strip()
+
+                # Get or create the Django Group with the same name
+                group, _ = Group.objects.get_or_create(name=role_name)
+
+                # Assign the user to this group if a user is linked
+                if teacher.user:
+                    teacher.user.groups.add(group)
+
+                messages.success(request, "Teacher added and assigned to group successfully!")
                 return redirect('teacher_list')
             except Exception as e:
                 messages.error(request, f"Error saving teacher: {e}")

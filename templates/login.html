@@ -229,14 +229,27 @@
       </form>
     </div>
   </div>
-  <div class="feedback-link">
-    <div class="student-note">
-      <h6 class="mb-2">👨‍🎓 Are you a student?</h6>
-      <p class="mb-3 small text-muted">Click below to provide anonymous feedback</p>
+  <div class="glass-card mt-4" style="margin-top: 40px; width: 460px;">
+    <h4 style="color: white; text-align: center; margin-bottom: 10px;">👨‍🎓 Are you a student?</h4>
+    <p style="color: rgba(255,255,255,0.8); text-align: center; margin-bottom: 20px;">
+      Click below to provide anonymous feedback
+    </p>
+    <div style="display: flex; justify-content: center;">
+      <a href="{% url 'student_feedback_form' %}" style="
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+      " onmouseover="this.style.background='#5a67d8'" onmouseout="this.style.background='#667eea'">
+        📝 Give Feedback
+      </a>
     </div>
-    <a href="{% url 'student_feedback_form' %}" class="btn-feedback">
-      📝 Give Feedback
-    </a>
+  </div>
+  
   </div>
   </div>
   <script>

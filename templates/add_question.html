@@ -7,11 +7,6 @@
         {% csrf_token %}
 
         <div class="mb-3">
-            <label for="{{ form.q_id.id_for_label }}" class="form-label">Question ID</label>
-            {{ form.q_id }}
-        </div>
-
-        <div class="mb-3">
             <label for="{{ form.q_desc.id_for_label }}" class="form-label">Question Description</label>
             {{ form.q_desc }}
         </div>

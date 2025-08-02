@@ -27,7 +27,6 @@
                     class="card-header d-flex justify-content-between align-items-center {% if not q.active %}bg-light text-muted{% endif %}">
                     <div>
                         <h5 class="mb-0">{{ q.q_id }} - {{ q.q_type }}</h5>
-                        <small>{{ q.q_desc|truncatechars:80 }}</small>
                     </div>
                     <div class="btn-group" role="group">
                         <!-- Toggle Active/Inactive -->
@@ -72,14 +71,15 @@
 
                     {% if q.q_type == 'MCQ' and q.feedbackqoption_set.all %}
                     <div class="mt-3">
-                        <strong>Options Preview:</strong>
                         <div class="row mt-2">
-                            {% for option in q.feedbackqoption_set.all|slice:":4" %}
+                            {% for option in q.feedbackqoption_set.all %}
                             <div class="col-md-3 mb-1">
-                                <span class="badge bg-light text-dark border">{{ option.ans_id }}: {{
-                                    option.answer|truncatechars:15 }}</span>
+                                <div class="p-2 border rounded bg-white text-dark">
+                                    {{ option.answer }}
+                                </div>
                             </div>
                             {% endfor %}
+
                             {% if q.feedbackqoption_set.count > 4 %}
                             <div class="col-md-3">
                                 <span class="text-muted">... and {{ q.feedbackqoption_set.count|add:"-4" }} more</span>

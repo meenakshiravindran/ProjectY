@@ -73,8 +73,12 @@
             padding: 12px;
             border-radius: 8px;
             transition: background-color 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            text-align: left;
         }
-
+        
         .form-check:hover {
             background-color: #f8f9fa;
         }
@@ -147,6 +151,18 @@
             text-align: center;
             color: #856404;
         }
+        /* Make option labels darker and visible */
+        .form-check-label {
+        color: #2c3e50;
+        font-weight: 500;
+        font-size: 1rem;
+    }   
+
+        /* Align question text to the left */
+        .question-text {
+            text-align: left;
+        }
+
     </style>
 </head>
 
@@ -154,13 +170,20 @@
     <div class="feedback-container">
         <div class="feedback-card">
             <div class="header">
-                <h1 class="mb-3">📝 Student Feedback Form</h1>
-                <p class="mb-0">Your feedback is valuable and completely anonymous. Please answer all questions
-                    honestly.</p>
-                <div class="mt-3">
-                    <small>Total Questions: {{ total_questions }}</small>
+                <div class="header">
+                    <h1 class="mb-3">📝 Student Feedback Form</h1>
+                
+                    {% if teacher %}
+                    <h5 class="mb-0">For: <span class="badge bg-warning text-dark">{{ teacher.name }}</span></h5>
+                    {% endif %}
+                
+                    <p class="mb-0">Your feedback is valuable and completely anonymous. Please answer all questions
+                        honestly.</p>
+                    <div class="mt-3">
+                        <small>Total Questions: {{ total_questions }}</small>
+                    </div>
                 </div>
-            </div>
+                
 
             <div class="p-4">
                 <div class="required-note">

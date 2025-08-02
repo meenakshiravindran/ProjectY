@@ -46,5 +46,8 @@ urlpatterns = [
     
     # Admin Feedback Response URLs (login required)
     path('feedback-admin/student-responses/', views.admin_student_feedback_responses, name='admin_student_feedback_responses'),
+    path('student-feedback/teachers/', views.select_teacher_for_feedback, name='select_teacher_for_feedback'),
+    path('student-feedback/teacher/<int:teacher_id>/', views.student_feedback_form_by_teacher, name='student_feedback_form_by_teacher'),
+
 ]
 

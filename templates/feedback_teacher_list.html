@@ -1,0 +1,28 @@
+<!-- templates/feedback_teacher_list.html -->
+{% extends 'base.html' %}
+{% block title %}Give Feedback{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">📋 Select a Teacher to Give Feedback</h2>
+
+    {% if teachers %}
+    <div class="row">
+        {% for teacher in teachers %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ teacher.name }}</h5>
+                    <p class="card-text mb-2"><strong>Department:</strong> {{ teacher.dept.dept_name }}</p>
+                    <p class="card-text"><strong>Designation:</strong> {{ teacher.designation }}</p>
+                    <a href="{% url 'student_feedback_form' %}?teacher_id={{ teacher.teacher_id }}" class="btn btn-primary">Give Feedback</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning">No teachers are currently active for feedback.</div>
+    {% endif %}
+</div>
+{% endblock %}

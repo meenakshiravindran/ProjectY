@@ -917,3 +917,39 @@ def admin_student_feedback_responses(request):
     return render(request, 'admin_response.html', context)
 
 
+def select_teacher_for_feedback(request):
+    """Display list of teachers with fb_active=True for students to choose."""
+    teachers = Teacher.objects.filter(fb_active=True)
+    return render(request, 'active_teacher_list.html', {'teachers': teachers})
+
+from django.shortcuts import get_object_or_404
+
+def student_feedback_form_by_teacher(request, teacher_id):
+    """Display feedback form for a selected teacher."""
+    teacher = get_object_or_404(Teacher, pk=teacher_id)
+
+    # Get only active questions
+    questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
+
+    if 'student_feedback_session' not in request.session:
+        request.session['student_feedback_session'] = str(uuid.uuid4())
+
+    mcq_questions = []
+    desc_questions = []
+
+    for question in questions:
+        if question.q_type == 'MCQ':
+            options = FeedbackQOption.objects.filter(q=question).order_by('ans_id')
+            mcq_questions.append({'question': question, 'options': options})
+        elif question.q_type == 'DESC':
+            desc_questions.append(question)
+
+    context = {
+        'mcq_questions': mcq_questions,
+        'desc_questions': desc_questions,
+        'session_id': request.session['student_feedback_session'],
+        'total_questions': questions.count(),
+        'teacher': teacher
+    }
+
+    return render(request, 'feedback_form.html', context)

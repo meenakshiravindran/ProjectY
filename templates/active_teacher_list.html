@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Select a Teacher to Give Feedback</h2>
+    <div class="row">
+        {% for teacher in teachers %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ teacher.name }}</h5>
+                    <p class="card-text">{{ teacher.designation }} - {{ teacher.dept.dept_name }}</p>
+                    <a href="{% url 'student_feedback_form_by_teacher' teacher.teacher_id %}" class="btn btn-primary">
+                        Give Feedback
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No active teachers available for feedback.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

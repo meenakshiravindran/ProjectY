@@ -52,17 +52,8 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'course_list' %}">Manage Courses</a>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="feedbackMenu" role="button" data-bs-toggle="dropdown"
-                                   aria-expanded="false">
-                                    Feedback
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="feedbackMenu">
-                                    <li><a class="dropdown-item" href="{% url 'add_question' %}">➕ Add Question</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'list_questions' %}">📋 View Questions</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'admin_student_feedback_responses' %}">📊 View Student Responses</a></li>
-                                </ul>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'admin_student_feedback_responses' %}">📊 View Feedback</a>
                             </li>
                         {% elif is_teacher %}
                             <li class="nav-item">

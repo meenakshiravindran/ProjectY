@@ -198,7 +198,7 @@
                     {% comment %} MCQ Questions {% endcomment %}
                     {% for mcq in mcq_questions %}
                     <div class="question-card" data-question-id="{{ mcq.question.q_id }}" data-question-type="MCQ">
-                        <div class="question-type-badge">Multiple Choice</div>
+                        {% comment %} <div class="question-type-badge">Multiple Choice</div> {% endcomment %}
                         <div class="question-text">
                             {{ forloop.counter }}. {{ mcq.question.q_desc }}
                             <span class="text-danger">*</span>
@@ -220,7 +220,7 @@
                     {% comment %} Descriptive Questions {% endcomment %}
                     {% for desc_question in desc_questions %}
                     <div class="question-card" data-question-id="{{ desc_question.q_id }}" data-question-type="DESC">
-                        <div class="question-type-badge">Descriptive</div>
+                        {% comment %} <div class="question-type-badge">Descriptive</div> {% endcomment %}
                         <div class="question-text">
                             {% with mcq_count=mcq_questions|length %}
                             {{ mcq_count|add:forloop.counter }}. {{ desc_question.q_desc }}

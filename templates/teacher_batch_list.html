@@ -1,47 +1,118 @@
 {% extends 'base.html' %}
 {% block title %}Teacher-Batch Assignments{% endblock %}
-{% block content %}
-<div class="container mt-4">
-    <h2 class="mb-3">Teacher-Batch Assignments</h2>
-    <a href="{% url 'assign_teacher_batch' %}" class="btn btn-primary mb-3">Add Assignment</a>
 
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>SI.No</th>
-                <th>Course</th>
-                <th>Batch</th>
-                <th>Department</th>
-                <th>Teacher</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-          {% for t in assignments %}
-          <tr>
-              <td>{{ forloop.counter }}</td>
-              <td>{{ t.course }}</td>
-              <td>{{ t.batch }}</td>
-              <td>{{ t.department }}</td>
-              <td>{{ t.teachers|join:", " }}</td>
-              <td>
-                {% if t.batch and t.course and t.department %}
-                    <a href="{% url 'edit_teacher_batch_group' t.batch_id t.course_id t.department_id %}" class="btn btn-sm btn-primary">Edit</a>
-                    <form action="{% url 'delete_teacher_batch_group' t.batch_id t.course_id t.department_id %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete all assignments for this group?');">Delete</button>
-                    </form>
-                {% else %}
-                    <span class="text-muted">Invalid group data</span>
-                {% endif %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-              <td colspan="6" class="text-center">No assignments found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
+{% block content %}
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<style>
+  .glass-button {
+    background: white;
+    color: #8e2de2;
+    border: 2px solid #8e2de2;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .glass-button:hover {
+    background: #8e2de2;
+    color: white;
+    border-color: #8e2de2;
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1), 0 6px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  table.table {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+  }
+
+  thead.table-dark th {
+    color: #fff;
+    border: none;
+  }
+
+  table td, table th {
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  h2 {
+    font-weight: 600;
+    color: #000000;
+    text-align: center;
+  }
+</style>
+
+<div class="container mt-5">
+  <h2 class="mb-3">TEACHER-BATCH ASSIGNMENTS</h2>
+
+  <div class="mb-3 text-start">
+    <a href="{% url 'assign_teacher_batch' %}" class="glass-button">
+        ➕ Add Assignment
+    </a>
+</div>
+
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped shadow-sm">
+      <thead class="table-dark">
+        <tr>
+          <th>SI.No</th>
+          <th>Course</th>
+          <th>Batch</th>
+          <th>Department</th>
+          <th>Teacher(s)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in assignments %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ t.course }}</td>
+          <td>{{ t.batch }}</td>
+          <td>{{ t.department }}</td>
+          <td>{{ t.teachers|join:", " }}</td>
+          <td>
+            {% if t.batch and t.course and t.department %}
+              <a href="{% url 'edit_teacher_batch_group' t.batch_id t.course_id t.department_id %}"
+                 class="text-warning me-2" style="font-size: 1.2rem;" title="Edit">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <form action="{% url 'delete_teacher_batch_group' t.batch_id t.course_id t.department_id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="text-danger border-0 bg-transparent p-0"
+                        style="font-size: 1.2rem;" title="Delete"
+                        onclick="return confirm('Delete all assignments for this group?');">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            {% else %}
+              <span class="text-muted">Invalid group data</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center">No assignments found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 </div>
 {% endblock %}

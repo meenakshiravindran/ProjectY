@@ -84,11 +84,8 @@
                                 <div class="card mb-4">
                                     <div class="card-header bg-light">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <h6 class="mb-0">
-                                                <span class="badge bg-primary me-2">Feedback #{{ session.feedback_number
-                                                    }}</span>
-                                                Anonymous Student
-                                            </h6>
+                                            <span class="badge bg-primary me-2 mb-1">Feedback #{{ session.feedback_number }}</span>
+                                                <span class="fw-semibold text-muted mb-1">Anonymous Student</span>
                                             <small class="text-muted">
                                                 Submitted: {{ session.submitted_at|date:"M d, Y H:i" }}
                                                 ({{ session.total_responses }} responses)
@@ -101,19 +98,18 @@
                                             <div class="col-md-6 mb-3">
                                                 <div class="border rounded p-3 h-100">
                                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                                        <strong class="text-primary">{{ response.question.q_id
-                                                            }}</strong>
-                                                        <span
-                                                            class="badge bg-{% if response.question.q_type == 'MCQ' %}info{% else %}success{% endif %} badge-sm">
+                                                        <span class="fw-bold text-dark">
+                                                            Q{{ response.question.q_id }}. {{ response.question.q_desc }}
+                                                        </span>
+                                                        <span class="badge bg-{% if response.question.q_type == 'MCQ' %}info{% else %}success{% endif %} badge-sm">
                                                             {{ response.question.q_type }}
                                                         </span>
                                                     </div>
-                                                    <p class="small text-muted mb-2">{{ response.question.q_desc }}</p>
                                                     <div class="answer-box p-2 bg-light rounded">
                                                         {% if response.selected_option %}
-                                                        <strong>{{ response.selected_option.answer }}</strong>
+                                                            <strong>{{ response.selected_option.answer }}</strong>
                                                         {% else %}
-                                                        {{ response.response_text }}
+                                                            {{ response.response_text }}
                                                         {% endif %}
                                                     </div>
                                                 </div>

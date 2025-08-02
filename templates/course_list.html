@@ -1,10 +1,66 @@
 {% extends 'base.html' %}
 {% block title %}Courses{% endblock %}
-{% block content %}
-<h2 class="mb-3">Courses</h2>
-<a href="{% url 'add_course' %}" class="btn btn-primary mb-3">Add Course</a>
 
-<table class="table table-bordered table-striped">
+{% block content %}
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<style>
+    .glass-button {
+        background: white;
+        color: #8e2de2;
+        border: 2px solid #8e2de2;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .glass-button:hover {
+        background: #8e2de2;
+        color: white;
+        border-color: #8e2de2;
+        box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1), 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    table.table {
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #fff;
+    }
+
+    thead.table-dark th {
+        color: #fff;
+        border: none;
+    }
+
+    table td, table th {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: 0.85rem;
+    }
+
+    h2 {
+        font-weight: 600;
+        color: #000000;
+        text-align: center;
+    }
+</style>
+
+<h2 class="mb-3">MANAGE COURSES</h2>
+<a href="{% url 'add_course' %}" class="glass-button mb-3">➕ Add Course</a>
+
+<table class="table table-bordered table-striped shadow-sm">
     <thead class="table-dark">
         <tr>
             <th>SI.No</th>
@@ -18,84 +74,84 @@
     </thead>
     <tbody>
         {% for course in courses %}
-    <tr class="course-row" data-course-id="{{ course.course_id }}" style="cursor: pointer;">
-        <td>{{ forloop.counter }}</td>
-        <td>{{ course.name }}</td>
-        <td>{{ course.code }}</td>
-        <td>{{ course.credit }}</td>
-        <td>{{ course.dept.dept_name }}</td>
-        <td>{{ course.pgm.pgm_name }}</td>
-        <td>
-            <a href="{% url 'edit_course' course.course_id %}" class="btn btn-sm btn-warning">Edit</a>
-            <form action="{% url 'delete_course' course.course_id %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-            </form>
-        </td>
-    </tr>
+        <tr class="course-row" data-course-id="{{ course.course_id }}" style="cursor: pointer;">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ course.name }}</td>
+            <td>{{ course.code }}</td>
+            <td>{{ course.credit }}</td>
+            <td>{{ course.dept.dept_name }}</td>
+            <td>{{ course.pgm.pgm_name }}</td>
+            <td>
+                <a href="{% url 'edit_course' course.course_id %}" title="Edit" class="text-warning me-2" style="font-size: 1.2rem;">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <form action="{% url 'delete_course' course.course_id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" title="Delete" class="text-danger border-0 bg-transparent p-0" style="font-size: 1.2rem;">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
 
-    <tr class="batch-row" id="batch-{{ course.course_id }}" style="display: none;">
-        <td colspan="7">
-            <strong>Batches:</strong>
-    
-            <!-- Add Batch Button triggers modal -->
-            <div class="mt-2">
-                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addBatchModal-{{ course.course_id }}">
-                    Add Batch
-                </button>
-            </div>
-    
-            <!-- Batches Table -->
-            <div class="table-responsive w-75 mt-3">
-                <table class="table table-sm table-bordered">
-                    <thead class="table-secondary">
-                        <tr>
-                            <th>Academic Year</th>
-                            <th>Part</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for batch in course.batch_set.all %}
-                        <tr>
-                            <td>{{ batch.acad_year }}</td>
-                            <td>{{ batch.part }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="2" class="text-center">No batches found.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-    
-            <!-- Modal Structure (inserted per course) -->
-            <div class="modal fade" id="addBatchModal-{{ course.course_id }}" tabindex="-1" aria-labelledby="addBatchLabel-{{ course.course_id }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content shadow">
-                        <div class="modal-header bg-dark text-white">
-                            <h5 class="modal-title" id="addBatchLabel-{{ course.course_id }}">Add Batch - {{ course.name }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <tr class="batch-row" id="batch-{{ course.course_id }}" style="display: none;">
+            <td colspan="7">
+                <strong>Batches:</strong>
+
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addBatchModal-{{ course.course_id }}">
+                        Add Batch
+                    </button>
+                </div>
+
+                <div class="table-responsive w-75 mt-3">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Academic Year</th>
+                                <th>Part</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for batch in course.batch_set.all %}
+                            <tr>
+                                <td>{{ batch.acad_year }}</td>
+                                <td>{{ batch.part }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center">No batches found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="modal fade" id="addBatchModal-{{ course.course_id }}" tabindex="-1" aria-labelledby="addBatchLabel-{{ course.course_id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content shadow">
+                            <div class="modal-header bg-dark text-white">
+                                <h5 class="modal-title" id="addBatchLabel-{{ course.course_id }}">Add Batch - {{ course.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" action="{% url 'add_batch' course.course_id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    {{ batch_form.as_p }}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-success">Save</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
                         </div>
-                        <form method="post" action="{% url 'add_batch' course.course_id %}">
-                            {% csrf_token %}
-                            <div class="modal-body">
-                                {{ batch_form.as_p }}  {# This must be passed from the view #}
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-success">Save</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            </div>
-                        </form>
                     </div>
                 </div>
-            </div>
-    
-        </td>
-    </tr>
-    
-    {% endfor %}
 
+            </td>
+        </tr>
+        {% endfor %}
     </tbody>
 </table>
+
 <script>
     document.querySelectorAll('.course-row').forEach(row => {
         row.addEventListener('click', () => {
@@ -104,5 +160,6 @@
             batchRow.style.display = batchRow.style.display === 'none' ? 'table-row' : 'none';
         });
     });
-    </script>
+</script>
+
 {% endblock %}

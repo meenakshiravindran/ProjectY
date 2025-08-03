@@ -110,13 +110,12 @@
 
         <tr class="batch-row" id="batch-{{ course.course_id }}" style="display: none;">
             <td colspan="7">
-                <strong>Batches:</strong>
 
-                <div class="mt-2">
-                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addBatchModal-{{ course.course_id }}">
-                        Add Batch
-                    </button>
-                </div>
+                <div class="d-flex justify-content-start mt-3">
+                <button class="btn btn-sm text-white" style="background-color: #8e2de2;" data-bs-toggle="modal" data-bs-target="#addBatchModal-{{ course.course_id }}">
+                    ➕ Add Batch
+                </button>
+            </div>
 
                 <div class="table-responsive w-75 mt-3">
                     <table class="table table-sm table-bordered">

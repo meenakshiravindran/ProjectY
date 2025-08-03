@@ -812,6 +812,10 @@ def student_feedback_form(request):
 def submit_student_feedback(request):
     """Handle student feedback submission"""
     if request.method == 'POST':
+        import json
+        print("=== POST DATA ===")
+        print(json.dumps(request.POST.dict(), indent=2))
+
         try:
             session_id = request.session.get('student_feedback_session')
             if not session_id:
@@ -881,7 +885,8 @@ def submit_student_feedback(request):
                     selected_option=response_data.get('selected_option'),
                     response_text=response_data.get('response_text'),
                     session_id=session_id,
-                    feedback_number=feedback_number  # We'll add this field to model
+                    feedback_number=feedback_number , # We'll add this field to model
+                    teacher=teacher 
                 )
             
             # Clear the session after successful submission
@@ -894,7 +899,11 @@ def submit_student_feedback(request):
             })
                 
         except Exception as e:
+            import traceback
+            print("Exception occurred in feedback submission:")
+            traceback.print_exc()  # This will print the full error
             return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
+
     
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
@@ -914,9 +923,12 @@ def admin_student_feedback_responses(request):
 
     # Role-based response filtering
     if is_admin:
-        responses = StudentFeedbackResponse.objects.all()
+        responses = StudentFeedbackResponse.objects.filter(teacher__isnull=False)
+        print(">>> ADMIN: Total feedback responses:", responses.count())
     elif role in ['HOD', 'TEACHER']:
-        responses = StudentFeedbackResponse.objects.filter(teacher=teacher)
+        responses = StudentFeedbackResponse.objects.filter(teacher__name=teacher.name)
+        print(f">>> Filtered responses using name: {teacher.name} → count: {responses.count()}")
+
     else:
         messages.error(request, "Access denied.")
         return redirect('login')

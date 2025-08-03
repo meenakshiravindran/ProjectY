@@ -194,6 +194,7 @@
 
                 <form id="feedbackForm">
                     {% csrf_token %}
+                    <input type="hidden" name="teacher_id" value="{{ teacher.pk }}">
 
                     {% comment %} MCQ Questions {% endcomment %}
                     {% for mcq in mcq_questions %}
@@ -308,24 +309,22 @@
                             '<div class="message success">' +
                             '✅ ' + data.message +
                             '</div>';
-                        // Hide the form
                         document.getElementById('feedbackForm').style.display = 'none';
-
-                        // Show thank you message and redirect
+                
                         setTimeout(function () {
-                            window.location.href = '/';
+                            window.location.href = "{% url 'select_teacher_for_feedback' %}";
                         }, 3000);
                     } else {
                         messageContainer.innerHTML =
                             '<div class="message error">' +
-                            '❌ ' + data.error +
+                            '❌ ' + (data.error || 'An unknown error occurred.') +
                             '</div>';
-                        // Re-enable submit button
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = 'Submit Feedback';
                         messageContainer.scrollIntoView({ behavior: 'smooth' });
                     }
                 })
+                
                 .catch(error => {
                     messageContainer.innerHTML =
                         '<div class="message error">' +

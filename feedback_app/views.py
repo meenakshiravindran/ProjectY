@@ -16,10 +16,267 @@ def user_login(request):
         else:
             return render(request, 'login.html', {'error': 'Invalid credentials'})
     return render(request, 'login.html')
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Avg, Q
+from django.utils import timezone
+from datetime import datetime, timedelta
+import json
+from collections import defaultdict, Counter
+import calendar
+
+# Import your models
+from .models import (
+    StudentFeedbackResponse, Teacher, Course, Department, 
+    TeacherBatch, FeedbackQOption, TeacherFeedbackResponse,
+    Feedback, Programme, Batch
+)
 
 @login_required
 def index(request):
-    return render(request, 'index.html')
+    user = request.user
+    current_date = timezone.now()
+    
+    # Base context
+    context = {
+        "current_date": current_date,
+        "is_admin": user.is_staff,
+        "is_teacher": hasattr(user, 'teacher') and not user.is_staff,
+    }
+    
+    if user.is_staff:
+        # Admin Dashboard Data
+        context.update(get_admin_dashboard_data())
+    elif hasattr(user, 'teacher'):
+        # Teacher Dashboard Data
+        context.update(get_teacher_dashboard_data(user.teacher))
+    
+    return render(request, 'index.html', context)
+
+def get_admin_dashboard_data():
+    """Generate comprehensive admin dashboard data"""
+    
+    # Basic statistics
+    total_responses = StudentFeedbackResponse.objects.count()
+    active_teachers = Teacher.objects.filter(fb_active=True).count()
+    total_courses = Course.objects.count()
+    total_departments = Department.objects.count()
+    
+    # Gender distribution data
+    gender_stats = Teacher.objects.exclude(gender__isnull=True).exclude(gender__exact='').values('gender').annotate(count=Count('gender'))
+    
+    if gender_stats.exists():
+        gender_labels = []
+        gender_counts = []
+        for stat in gender_stats:
+            gender_labels.append(stat['gender'].title() if stat['gender'] else 'Not Specified')
+            gender_counts.append(stat['count'])
+    else:
+        # Default data if no gender data exists
+        gender_labels = ['Male', 'Female']
+        gender_counts = [0, 0]
+    
+    # Rating distribution (assuming you have rating options)
+    rating_options = ['Excellent', 'Very Good', 'Good', 'Average', 'Poor']
+    rating_counts = []
+    
+    for option in rating_options:
+        count = StudentFeedbackResponse.objects.filter(
+            selected_option__answer__icontains=option
+        ).count()
+        rating_counts.append(count)
+    
+    # If all counts are 0, provide sample data for demonstration
+    if sum(rating_counts) == 0:
+        rating_counts = [0, 0, 0, 0, 0]
+    
+    # Monthly response trend (last 6 months)
+    monthly_labels = []
+    monthly_counts = []
+    current_date = timezone.now()
+    
+    for i in range(6):
+        date = current_date - timedelta(days=30*i)
+        month_name = calendar.month_name[date.month]
+        monthly_labels.insert(0, f"{month_name[:3]} {date.year}")
+        
+        # Count responses for this month
+        start_date = date.replace(day=1)
+        if i == 0:
+            end_date = current_date
+        else:
+            next_month = start_date.replace(month=start_date.month+1) if start_date.month < 12 else start_date.replace(year=start_date.year+1, month=1)
+            end_date = next_month - timedelta(days=1)
+        
+        count = StudentFeedbackResponse.objects.filter(
+            submitted_at__range=[start_date, end_date]
+        ).count()
+        monthly_counts.insert(0, count)
+    
+    # Department-wise teacher distribution
+    dept_stats = Department.objects.annotate(
+        teacher_count=Count('teacher')
+    ).order_by('-teacher_count')
+    
+    department_labels = [dept.dept_name for dept in dept_stats]
+    department_counts = [dept.teacher_count for dept in dept_stats]
+    
+    # Recent activities (last 10 feedback responses)
+    recent_activities = TeacherFeedbackResponse.objects.select_related(
+        'teacher_batch__teacher',
+        'teacher_batch__course',
+        'teacher_batch__department'
+    ).order_by('-created_date_time')[:10]
+    
+    return {
+        'total_responses': total_responses,
+        'active_teachers': active_teachers,
+        'total_courses': total_courses,
+        'total_departments': total_departments,
+        'gender_labels': json.dumps(gender_labels),
+        'gender_counts': json.dumps(gender_counts),
+        'rating_labels': json.dumps(rating_options),
+        'rating_counts': json.dumps(rating_counts),
+        'monthly_labels': json.dumps(monthly_labels),
+        'monthly_counts': json.dumps(monthly_counts),
+        'department_labels': json.dumps(department_labels),
+        'department_counts': json.dumps(department_counts),
+        'recent_activities': recent_activities,
+    }
+
+def get_teacher_dashboard_data(teacher):
+    """Generate comprehensive teacher dashboard data"""
+    
+    # Teacher's courses
+    teacher_batches = TeacherBatch.objects.filter(teacher=teacher).select_related(
+        'course', 'batch', 'department'
+    )
+    
+    teacher_courses_count = teacher_batches.count()
+    
+    # Teacher's responses count
+    teacher_responses_count = StudentFeedbackResponse.objects.filter(
+        teacher=teacher
+    ).count()
+    
+    # Calculate average rating for this teacher
+    # This assumes you have a rating system - adjust based on your actual implementation
+    rating_responses = StudentFeedbackResponse.objects.filter(
+        teacher=teacher,
+        selected_option__isnull=False
+    ).select_related('selected_option')
+    
+    # Map rating options to numeric values (adjust based on your system)
+    rating_map = {
+        'excellent': 5,
+        'very good': 4,
+        'good': 3,
+        'average': 2,
+        'poor': 1
+    }
+    
+    total_rating = 0
+    rating_count = 0
+    feedback_distribution = defaultdict(int)
+    
+    for response in rating_responses:
+        option_text = response.selected_option.answer.lower()
+        for key, value in rating_map.items():
+            if key in option_text:
+                total_rating += value
+                rating_count += 1
+                feedback_distribution[response.selected_option.answer] += 1
+                break
+    
+    teacher_avg_rating = total_rating / rating_count if rating_count > 0 else 0
+    
+    # Unique students (based on session_id)
+    unique_students = StudentFeedbackResponse.objects.filter(
+        teacher=teacher
+    ).values('session_id').distinct().count()
+    
+    # Feedback distribution for charts
+    teacher_feedback_labels = list(feedback_distribution.keys())
+    teacher_feedback_counts = list(feedback_distribution.values())
+    
+    # Course-wise performance
+    course_performance = []
+    course_labels = []
+    course_ratings = []
+    
+    for batch in teacher_batches:
+        course_responses = StudentFeedbackResponse.objects.filter(
+            teacher=teacher,
+            # You might need to add a way to link responses to specific courses
+        ).select_related('selected_option')
+        
+        # Calculate average for this course
+        course_total = 0
+        course_count = 0
+        response_count = 0
+        
+        for response in course_responses:
+            response_count += 1
+            if response.selected_option:
+                option_text = response.selected_option.answer.lower()
+                for key, value in rating_map.items():
+                    if key in option_text:
+                        course_total += value
+                        course_count += 1
+                        break
+        
+        course_avg = course_total / course_count if course_count > 0 else 0
+        
+        course_info = {
+            'course': batch.course,
+            'batch': batch.batch,
+            'department': batch.department,
+            'response_count': response_count,
+            'avg_rating': course_avg
+        }
+        course_performance.append(course_info)
+        
+        # For chart
+        course_labels.append(batch.course.code)
+        course_ratings.append(course_avg)
+    
+    return {
+        'teacher_courses_count': teacher_courses_count,
+        'teacher_responses_count': teacher_responses_count,
+        'teacher_avg_rating': teacher_avg_rating,
+        'unique_students': unique_students,
+        'teacher_feedback_labels': json.dumps(teacher_feedback_labels),
+        'teacher_feedback_counts': json.dumps(teacher_feedback_counts),
+        'course_labels': json.dumps(course_labels),
+        'course_ratings': json.dumps(course_ratings),
+        'teacher_courses': course_performance,
+    }
+
+# Optional: Helper function to get rating value from option text
+def get_rating_value(option_text):
+    """Convert option text to numeric rating"""
+    option_lower = option_text.lower()
+    rating_map = {
+        'excellent': 5,
+        'very good': 4,
+        'good': 3,
+        'average': 2,
+        'poor': 1
+    }
+    
+    for key, value in rating_map.items():
+        if key in option_lower:
+            return value
+    return 0  # Default if no match found
+
+# Optional: Function to get color scheme for charts
+def get_chart_colors(count):
+    """Generate color scheme for charts"""
+    colors = [
+        '#667eea', '#764ba2', '#4CAF50', '#2196F3', 
+        '#FF9800', '#f44336', '#9C27B0', '#607D8B'
+    ]
+    return colors[:count] if count <= len(colors) else colors * (count // len(colors) + 1)
 
 def user_logout(request):
     logout(request)

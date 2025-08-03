@@ -412,15 +412,22 @@ from .forms import TeacherForm,TeacherEditForm  # Add TeacherEditForm separately
 from django.contrib.auth.models import Group
 from django.contrib import messages
 @login_required()
-
 def teacher_list(request):
-    teachers = Teacher.objects.all()
-    return render(request, 'teacher_list.html', {'teachers': teachers})
+    selected_dept = request.GET.get('department')
+    departments = Department.objects.all()
+    
+    if selected_dept:
+        teachers = Teacher.objects.filter(dept__dept_name=selected_dept)
+    else:
+        teachers = Teacher.objects.all()
+    
+    return render(request, 'teacher_list.html', {
+        'teachers': teachers,
+        'departments': departments,
+        'selected_dept': selected_dept,
+    })
 
 @login_required()
-
-
-
 def add_teacher(request):
     if request.method == 'POST':
         form = TeacherForm(request.POST)
@@ -1038,3 +1045,10 @@ def get_courses_by_department(request):
     department_id = request.GET.get('department_id')
     courses = Course.objects.filter(dept_id=department_id).values('course_id', 'name')
     return JsonResponse(list(courses), safe=False)
+
+def toggle_feedback_status(request, teacher_id):
+    if request.method == 'POST':
+        teacher = get_object_or_404(Teacher, pk=teacher_id)
+        teacher.fb_active = not teacher.fb_active
+        teacher.save()
+    return redirect('teacher_list')

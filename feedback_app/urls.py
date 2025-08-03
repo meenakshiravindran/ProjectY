@@ -27,6 +27,8 @@ urlpatterns = [
     path('teachers/delete/<int:pk>/', views.delete_teacher, name='delete_teacher'),
     path('teacher/<int:user_id>/change-password/', views.change_teacher_password, name='change_teacher_password'),
     path('teacher/<int:user_id>/reset-password/', views.reset_teacher_password, name='reset_teacher_password'),
+    path('teachers/<int:teacher_id>/toggle_feedback/', views.toggle_feedback_status, name='toggle_feedback'),
+
 
     path('teacher-batch/', views.teacher_batch_list, name='teacher_batch_list'),
     path('teacher-batch/add/', views.assign_teacher_batch, name='assign_teacher_batch'),

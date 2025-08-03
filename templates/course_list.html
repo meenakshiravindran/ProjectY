@@ -57,8 +57,22 @@
     }
 </style>
 
-<h2 class="mb-3">MANAGE COURSES</h2>
-<a href="{% url 'add_course' %}" class="glass-button mb-3">➕ Add Course</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">MANAGE COURSES</h2>
+    <a href="{% url 'add_course' %}" class="glass-button mt-2">➕ Add Course</a>
+</div>
+
+<form method="get" class="mb-3 d-flex align-items-center gap-2">
+    <label for="deptFilter" class="fw-bold">Filter by Department:</label>
+    <select id="deptFilter" name="department" class="form-select w-auto" onchange="this.form.submit()">
+        <option value="">All</option>
+        {% for dept in departments %}
+            <option value="{{ dept.dept_name }}" {% if selected_dept == dept.dept_name %}selected{% endif %}>
+                {{ dept.dept_name }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
 
 <table class="table table-bordered table-striped shadow-sm">
     <thead class="table-dark">
@@ -161,5 +175,4 @@
         });
     });
 </script>
-
 {% endblock %}

@@ -316,10 +316,20 @@ from .forms import CourseForm
 
 @login_required
 def course_list(request):
-    courses = Course.objects.all().prefetch_related('batch_set')
+    selected_dept = request.GET.get('department')
+    departments = Department.objects.all()
+
+    if selected_dept:
+        courses = Course.objects.filter(dept__dept_name=selected_dept).prefetch_related('batch_set')
+    else:
+        courses = Course.objects.all().prefetch_related('batch_set')
+
     batch_form = BatchForm()
+
     return render(request, 'course_list.html', {
         'courses': courses,
+        'departments': departments,
+        'selected_dept': selected_dept,
         'batch_form': batch_form
     })
 
@@ -527,16 +537,20 @@ from .models import TeacherBatch
 
 @login_required
 def teacher_batch_list(request):
-    assignments = TeacherBatch.objects.select_related('teacher', 'batch', 'course', 'department').all()
+    selected_dept_id = request.GET.get('department')
+    departments = Department.objects.all()
+
+    assignments = TeacherBatch.objects.select_related('teacher', 'batch', 'course', 'department')
+
+    if selected_dept_id:
+        assignments = assignments.filter(department__dept_id=selected_dept_id)
 
     grouped = defaultdict(list)
     grouped_info = {}
 
     for a in assignments:
-        # Compose keys based on related objects' IDs to avoid ambiguity
         key = (a.batch.batch_id, a.course.course_id, a.department.dept_id)
 
-        # Store the names/info only once per group
         if key not in grouped_info:
             batch_str = f"{a.batch.acad_year} - {a.batch.part}"
             course_str = f"{a.course.code} - {a.course.name}"
@@ -550,19 +564,21 @@ def teacher_batch_list(request):
                 'department_id': a.department.dept_id,
             }
 
-        # Append teacher names to the group
         grouped[key].append(a.teacher.name)
 
-    # Prepare list to send to template
     grouped_list = []
     for key, teachers in grouped.items():
         info = grouped_info[key]
         info['teachers'] = teachers
         grouped_list.append(info)
 
-    return render(request, 'teacher_batch_list.html', {'assignments': grouped_list})
+    departments = Department.objects.all()
 
-
+    return render(request, 'teacher_batch_list.html', {
+        'assignments': grouped_list,
+        'departments': departments,
+        'selected_dept_id': selected_dept_id,
+    })
 
 # ✅ View 2: Add Assignment (Multiple Teachers at Once)
 @login_required
@@ -918,21 +934,38 @@ def admin_student_feedback_responses(request):
     user = request.user
     is_admin = user.is_staff
 
+    # 🔹 Global stats (for cards)
+    total_questions = FeedbackQuestion.objects.filter(active=True).count()
+    all_responses = StudentFeedbackResponse.objects.all()
+    total_feedback_submissions = all_responses.values('session_id').distinct().count()
+
+    # Avg responses
+    total_responses = all_responses.count()
+    total_sessions = total_feedback_submissions
+    avg_responses_global = round(total_responses / total_sessions, 2) if total_sessions else 0
+
+    # Latest submission
+    latest_submission_obj = all_responses.order_by('-submitted_at').first()
+    latest_submission = latest_submission_obj.submitted_at if latest_submission_obj else "--"
+
+    # 🔹 Filters
     selected_dept_id = request.GET.get('department')
     selected_teacher_id = request.GET.get('teacher')
 
     departments = Department.objects.all()
-    teachers = Teacher.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Teacher.objects.none()
+    teachers = Teacher.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Teacher.objects.all()
+    
+    # 🔹 Filtered responses (for display)
     responses = StudentFeedbackResponse.objects.none()
 
     if is_admin:
         if selected_teacher_id:
             responses = StudentFeedbackResponse.objects.filter(teacher_id=selected_teacher_id)
+        elif selected_dept_id:
+            responses = StudentFeedbackResponse.objects.filter(teacher__dept_id=selected_dept_id)
         else:
-            responses = StudentFeedbackResponse.objects.none()  # Show nothing if no teacher selected
-
-
-    elif user and not is_admin:
+            responses = all_responses  # default to all responses
+    else:
         try:
             teacher = Teacher.objects.get(user=user)
             responses = StudentFeedbackResponse.objects.filter(teacher=teacher)
@@ -940,6 +973,7 @@ def admin_student_feedback_responses(request):
             messages.error(request, "Teacher not found.")
             return redirect('login')
 
+    # 🔹 Group by session for display
     grouped = {}
     for response in responses:
         grouped.setdefault(response.session_id, []).append(response)
@@ -953,6 +987,7 @@ def admin_student_feedback_responses(request):
             'responses': session_responses,
         })
 
+    # 🔹 Summary tab (filtered)
     questions_with_responses = []
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
 
@@ -983,19 +1018,22 @@ def admin_student_feedback_responses(request):
             })
 
     avg_responses = round(responses.count() / len(grouped), 2) if grouped else 0
-    latest_submission = max([s['submitted_at'] for s in feedback_sessions]) if feedback_sessions else "--"
 
     context = {
         'departments': departments,
         'teachers': teachers,
         'selected_dept_id': int(selected_dept_id) if selected_dept_id else None,
         'selected_teacher_id': int(selected_teacher_id) if selected_teacher_id else None,
+
+        # Cards - global
+        'total_questions': total_questions,
+        'total_feedback_submissions': total_feedback_submissions,
+        'avg_responses_per_student': avg_responses_global,
+        'latest_submission': latest_submission,
+
+        # Tabs - filtered
         'feedback_sessions': feedback_sessions,
         'questions_with_summary': questions_with_responses,
-        'total_questions': questions.count(),
-        'total_feedback_submissions': len(grouped),
-        'avg_responses_per_student': avg_responses,
-        'latest_submission': latest_submission,
     }
 
     return render(request, 'admin_response.html', context)
@@ -1052,3 +1090,8 @@ def toggle_feedback_status(request, teacher_id):
         teacher.fb_active = not teacher.fb_active
         teacher.save()
     return redirect('teacher_list')
+
+def select_teacher_for_feedback(request):
+    """Display list of teachers with fb_active=True for students to choose."""
+    teachers = Teacher.objects.filter(fb_active=True)
+    return render(request, 'active_teacher_list.html',{'teachers':teachers})

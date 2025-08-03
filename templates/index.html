@@ -223,29 +223,7 @@
             </div>
         </div>
         
-        <div class="col-lg-4 mb-3">
-            <div class="chart-container">
-                <h5 class="mb-3">
-                    <i class="fas fa-clock me-2 text-secondary"></i>
-                    Recent Activity
-                </h5>
-                <div class="recent-activity">
-                    {% for activity in recent_activities %}
-                    <div class="activity-item">
-                        <small class="text-muted">{{ activity.created_date_time|timesince }} ago</small>
-                        <div class="fw-bold">{{ activity.teacher_batch.teacher.name }}</div>
-                        <small>{{ activity.teacher_batch.course.name }}</small>
-                        <span class="department-badge">{{ activity.teacher_batch.department.dept_name }}</span>
-                    </div>
-                    {% empty %}
-                    <div class="text-center text-muted">
-                        <i class="fas fa-inbox fa-2x mb-2"></i>
-                        <p>No recent activity</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+        
     </div>
 
     {% else %}

@@ -57,62 +57,68 @@
   }
 </style>
 
-<div class="container mt-5">
-  <h2 class="mb-3">TEACHER-BATCH ASSIGNMENTS</h2>
-
-  <div class="mb-3 text-start">
-    <a href="{% url 'assign_teacher_batch' %}" class="glass-button">
-        ➕ Assign Teacher
-    </a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">TEACHER-BATCH ASSIGNMENTS</h2>
+  <a href="{% url 'assign_teacher_batch' %}" class="glass-button mt-2">➕ Assign Teacher</a>
 </div>
 
+<form method="get" class="mb-3 d-flex align-items-center gap-2">
+  <label for="department" class="fw-bold">Filter by Department:</label>
+  <select name="department" id="department" class="form-select w-auto" onchange="this.form.submit()">
+    <option value="">All</option>
+    {% for dept in departments %}
+      <option value="{{ dept.dept_id }}" {% if selected_department == dept.dept_id|stringformat:"s" %}selected{% endif %}>
+        {{ dept.dept_name }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped shadow-sm">
-      <thead class="table-dark">
-        <tr>
-          <th>SI.No</th>
-          <th>Course</th>
-          <th>Batch</th>
-          <th>Department</th>
-          <th>Teacher(s)</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for t in assignments %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ t.course }}</td>
-          <td>{{ t.batch }}</td>
-          <td>{{ t.department }}</td>
-          <td>{{ t.teachers|join:", " }}</td>
-          <td>
-            {% if t.batch and t.course and t.department %}
-              <a href="{% url 'edit_teacher_batch_group' t.batch_id t.course_id t.department_id %}"
-                 class="text-warning me-2" style="font-size: 1.2rem;" title="Edit">
-                <i class="bi bi-pencil-square"></i>
-              </a>
-              <form action="{% url 'delete_teacher_batch_group' t.batch_id t.course_id t.department_id %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="text-danger border-0 bg-transparent p-0"
-                        style="font-size: 1.2rem;" title="Delete"
-                        onclick="return confirm('Delete all assignments for this group?');">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
-            {% else %}
-              <span class="text-muted">Invalid group data</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="text-center">No assignments found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="table-responsive">
+  <table class="table table-bordered table-striped shadow-sm">
+    <thead class="table-dark">
+      <tr>
+        <th>SI.No</th>
+        <th>Course</th>
+        <th>Batch</th>
+        <th>Department</th>
+        <th>Teacher(s)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in assignments %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ t.course }}</td>
+        <td>{{ t.batch }}</td>
+        <td>{{ t.department }}</td>
+        <td>{{ t.teachers|join:", " }}</td>
+        <td>
+          {% if t.batch and t.course and t.department %}
+            <a href="{% url 'edit_teacher_batch_group' t.batch_id t.course_id t.department_id %}"
+               class="text-warning me-2" style="font-size: 1.2rem;" title="Edit">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+            <form action="{% url 'delete_teacher_batch_group' t.batch_id t.course_id t.department_id %}" method="post" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="text-danger border-0 bg-transparent p-0"
+                      style="font-size: 1.2rem;" title="Delete"
+                      onclick="return confirm('Delete all assignments for this group?');">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          {% else %}
+            <span class="text-muted">Invalid group data</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="text-center">No assignments found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

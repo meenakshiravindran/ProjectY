@@ -2,14 +2,23 @@
 {% extends 'base.html' %}
 {% block title %}Student Feedback Responses - Admin{% endblock %}
 {% block content %}
+<style>
+    .welcome-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+</style>
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="welcome-banner">
                     <h3 class="mb-0">📊 Student Feedback Responses</h3>
                     <small>Review all anonymous student feedback submissions</small>
-                </div>
+                </div>
                 <div class="card-body">
 
                     <!-- Summary Stats -->

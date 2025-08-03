@@ -62,6 +62,7 @@
                         </div>
                         {% endif %}
                     </div>
+                    {% if user.is_staff %}
                     <form method="get" id="filterForm" class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label for="departmentSelect" class="form-label">Select Department</label>
@@ -72,7 +73,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-        
+                    
                         <div class="col-md-4">
                             <label for="teacherSelect" class="form-label">Select Teacher</label>
                             <select class="form-select" id="teacherSelect" name="teacher" onchange="document.getElementById('filterForm').submit();">
@@ -83,7 +84,7 @@
                             </select>
                         </div>
                     </form>
-        
+                    {% endif %}
 
                     <!-- Navigation Tabs -->
                     <ul class="nav nav-tabs" id="responseTab" role="tablist">

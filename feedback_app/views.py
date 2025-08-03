@@ -609,6 +609,14 @@ def submit_student_feedback(request):
             feedback_count = StudentFeedbackResponse.objects.values('session_id').distinct().count()
             feedback_number = feedback_count + 1
             
+            teacher_id = request.POST.get('teacher_id')
+            teacher = None
+            if teacher_id:
+                try:
+                    teacher = Teacher.objects.get(pk=teacher_id)
+                except Teacher.DoesNotExist:
+                    teacher = None
+
             # Save all responses
             for response_data in responses_to_save:
                 StudentFeedbackResponse.objects.create(
@@ -635,78 +643,94 @@ def submit_student_feedback(request):
 
 @login_required
 def admin_student_feedback_responses(request):
-    """Admin view to see all student feedback responses organized by feedback number"""
-    if not request.user.is_staff:
-        messages.error(request, "Access denied. Admin privileges required.")
+    """Role-based feedback response view with both individual and summary sections."""
+
+    user = request.user
+    is_admin = user.is_staff
+
+    try:
+        teacher = Teacher.objects.get(user=user)
+        role = teacher.role.role_name.upper()
+    except Teacher.DoesNotExist:
+        teacher = None
+        role = None
+
+    # Role-based response filtering
+    if is_admin:
+        responses = StudentFeedbackResponse.objects.all()
+    elif role in ['HOD', 'TEACHER']:
+        responses = StudentFeedbackResponse.objects.filter(teacher=teacher)
+    else:
+        messages.error(request, "Access denied.")
         return redirect('login')
-    
-    # Get all feedback responses grouped by feedback_number (student)
+
+    # Individual Sessions (grouped by session_id)
+    grouped = {}
+    for response in responses:
+        grouped.setdefault(response.session_id, []).append(response)
+
     feedback_sessions = []
-    unique_feedback_numbers = StudentFeedbackResponse.objects.values('feedback_number').distinct().order_by('feedback_number')
-    
-    for feedback_data in unique_feedback_numbers:
-        feedback_number = feedback_data['feedback_number']
-        responses = StudentFeedbackResponse.objects.filter(feedback_number=feedback_number).order_by('question__q_id')
-        
-        if responses.exists():
-            feedback_sessions.append({
-                'feedback_number': feedback_number,
-                'responses': responses,
-                'submitted_at': responses.first().submitted_at,
-                'total_responses': responses.count()
-            })
-    
-    # Get summary statistics
-    questions_with_summary = []
+    for i, (session_id, session_responses) in enumerate(grouped.items(), start=1):
+        feedback_sessions.append({
+            'feedback_number': i,
+            'submitted_at': session_responses[0].submitted_at,
+            'total_responses': len(session_responses),
+            'responses': session_responses,
+        })
+
+    # Summary section
+    questions_with_responses = []
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
-    
+
     for question in questions:
-        responses = StudentFeedbackResponse.objects.filter(question=question)
-        
+        q_responses = responses.filter(question=question)
         if question.q_type == 'MCQ':
-            # Group MCQ responses by option
             option_counts = {}
-            total_responses = 0
-            for response in responses:
-                if response.selected_option:
-                    option_text = response.selected_option.answer
-                    option_counts[option_text] = option_counts.get(option_text, 0) + 1
-                    total_responses += 1
-            
-            questions_with_summary.append({
+            for r in q_responses:
+                if r.selected_option:
+                    key = r.selected_option.answer
+                    option_counts[key] = option_counts.get(key, 0) + 1
+            questions_with_responses.append({
                 'question': question,
                 'type': 'MCQ',
                 'option_counts': option_counts,
-                'total_responses': total_responses
+                'total_responses': q_responses.count()
             })
-        
         elif question.q_type == 'DESC':
-            # Get all descriptive responses
-            desc_responses = []
-            for response in responses:
-                if response.response_text:
-                    desc_responses.append({
-                        'text': response.response_text,
-                        'feedback_number': response.feedback_number,
-                        'submitted_at': response.submitted_at
-                    })
-            
-            questions_with_summary.append({
+            questions_with_responses.append({
                 'question': question,
                 'type': 'DESC',
-                'responses': desc_responses,
-                'total_responses': len(desc_responses)
+                'responses': [{
+                    'text': r.response_text,
+                    'submitted_at': r.submitted_at,
+                    'feedback_number': r.feedback_number
+                } for r in q_responses if r.response_text],
+                'total_responses': q_responses.count()
             })
-    
-    context = {
-        'feedback_sessions': feedback_sessions,
-        'questions_with_summary': questions_with_summary,
-        'total_questions': questions.count(),
-        'total_feedback_submissions': len(feedback_sessions)
-    }
-    
-    return render(request, 'admin_response.html', context)
+# Additional stats
+    avg_responses = 0
+    latest_submission = "--"
 
+    if feedback_sessions:
+        total_responses = responses.count()
+        avg_responses = round(total_responses / len(grouped), 2)
+
+        # Get latest submission datetime
+        latest_submission = max([s['submitted_at'] for s in feedback_sessions])
+
+    context = {
+    'feedback_sessions': feedback_sessions,
+    'questions_with_summary': questions_with_responses,
+    'total_questions': questions.count(),
+    'total_feedback_submissions': len(grouped),
+    'avg_responses_per_student': avg_responses,
+    'latest_submission': latest_submission
+    }
+
+    # Additional stats
+   
+
+    return render(request, 'admin_response.html', context)
 
 def select_teacher_for_feedback(request):
     """Display list of teachers with fb_active=True for students to choose."""

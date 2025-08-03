@@ -14,6 +14,7 @@
 
                     <!-- Summary Stats -->
                     <div class="row mb-4">
+                        <!-- Total Questions - Always show -->
                         <div class="col-md-3">
                             <div class="card bg-info text-white">
                                 <div class="card-body text-center">
@@ -22,6 +23,8 @@
                                 </div>
                             </div>
                         </div>
+                    
+                        <!-- Total Feedback Submissions - Show for all -->
                         <div class="col-md-3">
                             <div class="card bg-success text-white">
                                 <div class="card-body text-center">
@@ -30,32 +33,34 @@
                                 </div>
                             </div>
                         </div>
+                    
+                        {% if user.is_staff %}
+                        <!-- Only for Admin: Avg Responses -->
                         <div class="col-md-3">
                             <div class="card bg-warning text-white">
                                 <div class="card-body text-center">
-                                    <h3>
-                                        {% for session in feedback_sessions %}
-                                        {% if forloop.first %}{{ session.total_responses }}{% endif %}
-                                        {% endfor %}
-                                        {% if not feedback_sessions %}0{% endif %}
-                                    </h3>
+                                    <h3>{{ avg_responses_per_student }}</h3>
                                     <p class="mb-0">Avg Responses/Student</p>
                                 </div>
                             </div>
                         </div>
+                    
+                        <!-- Only for Admin: Latest Submission -->
                         <div class="col-md-3">
                             <div class="card bg-secondary text-white">
                                 <div class="card-body text-center">
                                     <h3>
-                                        {% for session in feedback_sessions %}
-                                        {% if forloop.last %}{{ session.submitted_at|date:"M d" }}{% endif %}
-                                        {% endfor %}
-                                        {% if not feedback_sessions %}No Data{% endif %}
+                                        {% if latest_submission %}
+                                            {{ latest_submission|date:"M d" }}
+                                        {% else %}
+                                            --
+                                        {% endif %}
                                     </h3>
                                     <p class="mb-0">Latest Submission</p>
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- Navigation Tabs -->

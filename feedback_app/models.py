@@ -170,6 +170,7 @@ class StudentFeedbackResponse(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     session_id = models.CharField(max_length=100)  # To group responses from same student
     feedback_number = models.IntegerField(default=1)  # Sequential numbering for anonymous feedback
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, blank=True)
     
     def __str__(self):
         return f"Feedback #{self.feedback_number} - {self.question.q_desc[:30]}..."

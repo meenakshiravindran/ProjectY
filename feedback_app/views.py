@@ -1029,3 +1029,12 @@ def student_feedback_form_by_teacher(request, teacher_id):
     }
 
     return render(request, 'feedback_form.html', context)
+
+from django.http import JsonResponse
+from .models import Course
+from .models import Teacher
+
+def get_courses_by_department(request):
+    department_id = request.GET.get('department_id')
+    courses = Course.objects.filter(dept_id=department_id).values('course_id', 'name')
+    return JsonResponse(list(courses), safe=False)

@@ -49,5 +49,6 @@ urlpatterns = [
     path('student-feedback/teachers/', views.select_teacher_for_feedback, name='select_teacher_for_feedback'),
     path('student-feedback/teacher/<int:teacher_id>/', views.student_feedback_form_by_teacher, name='student_feedback_form_by_teacher'),
 
+    path('ajax/get-courses/', views.get_courses_by_department, name='get_courses_by_department'),
 ]
 

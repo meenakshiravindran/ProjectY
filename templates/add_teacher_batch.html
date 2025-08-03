@@ -10,7 +10,10 @@
         <div class="card-body">
             <form method="post">
                 {% csrf_token %}
-
+                <div class="mb-3">
+                    <label for="id_department" class="form-label">Department</label>
+                    {{ form.department }}
+                </div>
                 <div class="mb-3">
                     <label for="id_course" class="form-label">Course</label>
                     {{ form.course }}
@@ -21,10 +24,7 @@
                     {{ form.batch }}
                 </div>
 
-                <div class="mb-3">
-                    <label for="id_department" class="form-label">Department</label>
-                    {{ form.department }}
-                </div>
+                
 
                 <div class="mb-3">
                     <label class="form-label">Select Teacher(s)</label>
@@ -44,5 +44,32 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const departmentSelect = document.getElementById('id_department');
+        const courseSelect = document.getElementById('id_course');
+    
+        departmentSelect.addEventListener('change', function () {
+            const deptId = this.value;
+    
+            // Clear existing course options
+            courseSelect.innerHTML = '<option value="">---------</option>';
+    
+            if (deptId) {
+                fetch(`/ajax/get-courses/?department_id=${deptId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(course => {
+                            const option = document.createElement('option');
+                            option.value = course.course_id;
+                            option.textContent = course.name;
+                            courseSelect.appendChild(option);
+                        });
+                    });
+            }
+        });
+    });
+    </script>
+    
 {% endblock %}
 

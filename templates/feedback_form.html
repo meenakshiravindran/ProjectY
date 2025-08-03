@@ -5,118 +5,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Feedback Form</title>
+    <title>Anonymous Feedback Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a0033 0%, #2d0066 25%, #4a0099 50%, #6600cc 75%, #8533ff 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px 20px;
         }
 
         .feedback-container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
         }
 
-        .feedback-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
+        .left-section {
+            flex: 0 0 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
         }
 
-        .question-card {
-            margin-bottom: 25px;
-            padding: 25px;
-            border: 2px solid #e9ecef;
-            border-radius: 15px;
-            background: #fafafa;
-            transition: all 0.3s ease;
-        }
-
-        .question-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
-        }
-
-        .question-text {
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #2c3e50;
-            font-size: 1.1rem;
-        }
-
-        .question-type-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-
-        .form-check {
-            margin: 12px 0;
-            padding: 12px;
-            border-radius: 8px;
-            transition: background-color 0.2s ease;
+        .icon-group {
             display: flex;
-            align-items: flex-start;
             gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6600cc, #8533ff);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(102, 0, 204, 0.4);
+        }
+
+        .user-icon::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 15px;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .user-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 10px;
+            width: 20px;
+            height: 15px;
+            background-color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .left-title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .right-section {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(102, 0, 204, 0.3);
+            border-radius: 0;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #000000 0%, #1a0033 25%, #4a0099 50%, #6600cc 75%, #000000 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-body {
+            padding: 30px;
+        }
+
+        .intro-text {
+            color: #444;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .teacher-info {
+            background: linear-gradient(135deg, rgba(102, 0, 204, 0.1), rgba(133, 51, 255, 0.1));
+            border: 1px solid rgba(102, 0, 204, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .teacher-badge {
+            background: linear-gradient(135deg, #6600cc, #8533ff);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            box-shadow: 0 2px 10px rgba(102, 0, 204, 0.3);
+        }
+
+        .question-section {
+            margin-bottom: 35px;
+            padding: 25px;
+            border: 1px solid rgba(102, 0, 204, 0.2);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 255, 0.9));
+        }
+
+        .question-title {
+            font-weight: 600;
+            color: #2d0066;
+            margin-bottom: 25px;
+            font-size: 1rem;
             text-align: left;
         }
-        
-        .form-check:hover {
-            background-color: #f8f9fa;
+
+        /* Rating container with horizontal layout */
+        .rating-container {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 0 20px;
         }
 
-        .form-check-input:checked {
-            background-color: #667eea;
-            border-color: #667eea;
+        /* Connecting line behind options */
+        .rating-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(102, 0, 204, 0.3), rgba(133, 51, 255, 0.3));
+            z-index: 1;
+            transform: translateY(-50%);
         }
 
-        .form-control {
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-            padding: 12px;
+        .rating-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 250, 255, 0.95));
+            padding: 0 5px;
+        }
+
+        .rating-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #6600cc;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .rating-checkbox:hover {
+            border-color: #8533ff;
+            box-shadow: 0 2px 8px rgba(102, 0, 204, 0.3);
+        }
+
+        .rating-checkbox.checked {
+            background: linear-gradient(135deg, #6600cc, #8533ff);
+            border-color: #6600cc;
+            box-shadow: 0 2px 10px rgba(102, 0, 204, 0.4);
+        }
+
+        .rating-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .rating-label {
+            font-size: 0.85rem;
+            color: #2d0066;
+            text-align: center;
+            font-weight: 500;
+            max-width: 80px;
+            line-height: 1.2;
+        }
+
+        /* Text area questions */
+        .text-question {
+            margin-bottom: 35px;
+            padding: 25px;
+            border: 1px solid rgba(102, 0, 204, 0.2);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 255, 0.9));
+        }
+
+        .text-area {
+            width: 100%;
+            min-height: 120px;
+            border: 2px solid rgba(102, 0, 204, 0.3);
+            border-radius: 5px;
+            padding: 15px;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            resize: vertical;
+            font-family: inherit;
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.9);
         }
 
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        .text-area:focus {
+            outline: none;
+            border-color: #6600cc;
+            box-shadow: 0 0 10px rgba(102, 0, 204, 0.3);
         }
 
         .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a0033 0%, #6600cc 100%);
+            color: white;
             border: none;
             padding: 15px 40px;
-            border-radius: 50px;
-            color: white;
+            border-radius: 5px;
             font-size: 1.1rem;
             font-weight: 600;
+            cursor: pointer;
             width: 100%;
-            margin-top: 30px;
+            margin-top: 20px;
             transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 0, 204, 0.3);
         }
 
         .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2d0066 0%, #8533ff 100%);
+            box-shadow: 0 7px 20px rgba(102, 0, 204, 0.4);
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
         .submit-btn:disabled {
@@ -125,67 +279,105 @@
         }
 
         .message {
-            padding: 20px;
+            padding: 15px;
             margin: 20px 0;
-            border-radius: 10px;
+            border-radius: 5px;
             text-align: center;
             font-weight: 500;
         }
 
         .success {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
+            background: linear-gradient(135deg, rgba(102, 0, 204, 0.1), rgba(133, 51, 255, 0.1));
+            color: #2d0066;
+            border: 1px solid rgba(102, 0, 204, 0.3);
         }
 
         .error {
-            background: linear-gradient(135deg, #dc3545, #fd7e14);
-            color: white;
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(255, 69, 0, 0.1));
+            color: #721c24;
+            border: 1px solid rgba(220, 20, 60, 0.3);
         }
 
         .required-note {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 165, 0, 0.1));
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 5px;
             padding: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: center;
             color: #856404;
         }
-        /* Make option labels darker and visible */
-        .form-check-label {
-        color: #2c3e50;
-        font-weight: 500;
-        font-size: 1rem;
-    }   
 
-        /* Align question text to the left */
-        .question-text {
-            text-align: left;
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .rating-container {
+                flex-wrap: wrap;
+                gap: 15px;
+                justify-content: center;
+            }
+           
+            .rating-container::before {
+                display: none;
+            }
         }
 
+        @media (max-width: 768px) {
+            .feedback-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .left-section {
+                flex: none;
+            }
+
+            .left-title {
+                font-size: 2rem;
+            }
+
+            .rating-container {
+                padding: 0 10px;
+            }
+
+            .rating-label {
+                font-size: 0.8rem;
+                max-width: 70px;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="feedback-container">
-        <div class="feedback-card">
-            <div class="header">
-                <div class="header">
-                    <h1 class="mb-3">📝 Student Feedback Form</h1>
-                
-                    {% if teacher %}
-                    <h5 class="mb-0">For: <span class="badge bg-warning text-dark">{{ teacher.name }}</span></h5>
-                    {% endif %}
-                
-                    <p class="mb-0">Your feedback is valuable and completely anonymous. Please answer all questions
-                        honestly.</p>
-                    <div class="mt-3">
-                        <small>Total Questions: {{ total_questions }}</small>
-                    </div>
-                </div>
-                
+        <!-- Left Section -->
+        <div class="left-section">
+            <div class="icon-group">
+                <div class="user-icon"></div>
+                <div class="user-icon"></div>
+            </div>
+            <h1 class="left-title">Anonymous feedback form</h1>
+        </div>
 
-            <div class="p-4">
+        <!-- Right Section -->
+        <div class="right-section">
+            <div class="form-header">
+                <h2>Feedback Form</h2>
+            </div>
+
+            <div class="form-body">
+                <p class="intro-text text-center">
+                    Increase engagement and honesty by removing fear of judgment
+                </p>
+
+                <!-- Teacher Info -->
+                {% if teacher %}
+                <div class="teacher-info">
+                    <p><strong>For:</strong> <span class="teacher-badge">{{ teacher.name }}</span></p>
+                    <p class="mb-1"><small>Your feedback is valuable and completely anonymous. Please answer all questions honestly.</small></p>
+                    <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
+                </div>
+                {% endif %}
+
                 <div class="required-note">
                     <strong>⚠️ Important:</strong> All questions must be answered before you can submit the form.
                 </div>
@@ -196,45 +388,43 @@
                     {% csrf_token %}
                     <input type="hidden" name="teacher_id" value="{{ teacher.pk }}">
 
-                    {% comment %} MCQ Questions {% endcomment %}
+                    <!-- MCQ Questions -->
                     {% for mcq in mcq_questions %}
-                    <div class="question-card" data-question-id="{{ mcq.question.q_id }}" data-question-type="MCQ">
-                        {% comment %} <div class="question-type-badge">Multiple Choice</div> {% endcomment %}
-                        <div class="question-text">
+                    <div class="question-section" data-question-id="{{ mcq.question.q_id }}" data-question-type="MCQ">
+                        <div class="question-title">
                             {{ forloop.counter }}. {{ mcq.question.q_desc }}
-                            <span class="text-danger">*</span>
+                            <span style="color: red;">*</span>
                         </div>
-
-                        {% for option in mcq.options %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio"
-                                id="q{{ mcq.question.q_id }}_opt{{ option.id }}" name="question_{{ mcq.question.q_id }}"
-                                value="{{ option.id }}">
-                            <label class="form-check-label" for="q{{ mcq.question.q_id }}_opt{{ option.id }}">
-                                {{ option.answer }}
-                            </label>
+                        <div class="rating-container">
+                            {% for option in mcq.options %}
+                            <div class="rating-option">
+                                <div class="rating-checkbox"
+                                     data-question="question_{{ mcq.question.q_id }}"
+                                     data-value="{{ option.id }}"></div>
+                                <div class="rating-label">{{ option.answer }}</div>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                     {% endfor %}
 
-                    {% comment %} Descriptive Questions {% endcomment %}
+                    <!-- Descriptive Questions -->
                     {% for desc_question in desc_questions %}
-                    <div class="question-card" data-question-id="{{ desc_question.q_id }}" data-question-type="DESC">
-                        {% comment %} <div class="question-type-badge">Descriptive</div> {% endcomment %}
-                        <div class="question-text">
+                    <div class="text-question" data-question-id="{{ desc_question.q_id }}" data-question-type="DESC">
+                        <div class="question-title">
                             {% with mcq_count=mcq_questions|length %}
                             {{ mcq_count|add:forloop.counter }}. {{ desc_question.q_desc }}
                             {% endwith %}
-                            <span class="text-danger">*</span>
+                            <span style="color: red;">*</span>
                         </div>
-                        <textarea name="question_{{ desc_question.q_id }}" class="form-control" rows="4"
-                            data-question-id="{{ desc_question.q_id }}"
-                            placeholder="Please provide your detailed response here..."></textarea>
+                        <textarea class="text-area"
+                                  name="question_{{ desc_question.q_id }}"
+                                  data-question="question_{{ desc_question.q_id }}"
+                                  placeholder="Please provide your detailed response here..."></textarea>
                     </div>
                     {% endfor %}
 
-                    <button type="submit" class="btn submit-btn" id="submitBtn">
+                    <button type="submit" class="submit-btn" id="submitBtn">
                         Submit Feedback
                     </button>
                 </form>
@@ -244,7 +434,26 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('feedbackForm').addEventListener('submit', function (e) {
+        // Handle checkbox selection (single selection per question)
+        document.querySelectorAll('.rating-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                const question = this.getAttribute('data-question');
+                const value = this.getAttribute('data-value');
+               
+                // Clear other selections for this question
+                document.querySelectorAll(`[data-question="${question}"]`).forEach(cb => {
+                    if (cb.classList.contains('rating-checkbox')) {
+                        cb.classList.remove('checked');
+                    }
+                });
+               
+                // Check this option
+                this.classList.add('checked');
+            });
+        });
+
+        // Form submission
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
             const submitBtn = document.getElementById('submitBtn');
@@ -255,19 +464,19 @@
 
             // Check MCQ questions
             const mcqQuestions = document.querySelectorAll('[data-question-type="MCQ"]');
-            mcqQuestions.forEach(function (questionCard, index) {
+            mcqQuestions.forEach(function(questionCard, index) {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const checkedOption = document.querySelector('input[name="question_' + questionId + '"]:checked');
-                if (!checkedOption) {
+                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
+                if (!checked) {
                     unansweredQuestions.push('Question ' + (index + 1) + ' (Multiple Choice)');
                 }
             });
 
             // Check descriptive questions
             const descQuestions = document.querySelectorAll('[data-question-type="DESC"]');
-            descQuestions.forEach(function (questionCard, index) {
+            descQuestions.forEach(function(questionCard, index) {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const textarea = document.querySelector('textarea[name="question_' + questionId + '"]');
+                const textarea = document.querySelector(`textarea[name="question_${questionId}"]`);
                 if (!textarea.value.trim()) {
                     const questionNumber = mcqQuestions.length + index + 1;
                     unansweredQuestions.push('Question ' + questionNumber + ' (Descriptive)');
@@ -291,55 +500,80 @@
             // Clear previous messages
             messageContainer.innerHTML = '';
 
-            // Get form data
-            const formData = new FormData(this);
+            // Collect form data
+            const formData = new FormData();
+           
+            // Add CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            // Add teacher_id
+            const teacherId = document.querySelector('[name=teacher_id]').value;
+            formData.append('teacher_id', teacherId);
+
+            // Add MCQ answers
+            mcqQuestions.forEach(function(questionCard) {
+                const questionId = questionCard.getAttribute('data-question-id');
+                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
+                if (checked) {
+                    formData.append(`question_${questionId}`, checked.getAttribute('data-value'));
+                }
+            });
+
+            // Add descriptive answers
+            descQuestions.forEach(function(questionCard) {
+                const questionId = questionCard.getAttribute('data-question-id');
+                const textarea = document.querySelector(`textarea[name="question_${questionId}"]`);
+                if (textarea) {
+                    formData.append(`question_${questionId}`, textarea.value.trim());
+                }
+            });
 
             // Submit via fetch
             fetch('/student-feedback/submit/', {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    'X-CSRFToken': csrfToken
                 }
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        messageContainer.innerHTML =
-                            '<div class="message success">' +
-                            '✅ ' + data.message +
-                            '</div>';
-                        document.getElementById('feedbackForm').style.display = 'none';
-                
-                        setTimeout(function () {
-                            window.location.href = "{% url 'select_teacher_for_feedback' %}";
-                        }, 3000);
-                    } else {
-                        messageContainer.innerHTML =
-                            '<div class="message error">' +
-                            '❌ ' + (data.error || 'An unknown error occurred.') +
-                            '</div>';
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = 'Submit Feedback';
-                        messageContainer.scrollIntoView({ behavior: 'smooth' });
-                    }
-                })
-                
-                .catch(error => {
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageContainer.innerHTML =
+                        '<div class="message success">' +
+                        '✅ ' + data.message +
+                        '</div>';
+                    // Hide the form
+                    document.getElementById('feedbackForm').style.display = 'none';
+
+                    // Show thank you message and redirect
+                    setTimeout(function() {
+                        window.location.href = '/student-feedback/teachers/';
+                    }, 3000);
+                } else {
                     messageContainer.innerHTML =
                         '<div class="message error">' +
-                        '❌ An error occurred. Please try again.' +
+                        '❌ ' + (data.error || 'An unknown error occurred.') +
                         '</div>';
                     // Re-enable submit button
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Submit Feedback';
                     messageContainer.scrollIntoView({ behavior: 'smooth' });
-                });
+                }
+            })
+            .catch(error => {
+                messageContainer.innerHTML =
+                    '<div class="message error">' +
+                    '❌ An error occurred. Please try again.' +
+                    '</div>';
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Feedback';
+                messageContainer.scrollIntoView({ behavior: 'smooth' });
+            });
         });
     </script>
-</body>
-
-</html>
 </body>
 
 </html>

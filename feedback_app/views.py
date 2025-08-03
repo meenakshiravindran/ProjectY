@@ -906,34 +906,33 @@ def submit_student_feedback(request):
 
     
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
 @login_required
 def admin_student_feedback_responses(request):
-    """Role-based feedback response view with both individual and summary sections."""
-
     user = request.user
     is_admin = user.is_staff
 
-    try:
-        teacher = Teacher.objects.get(user=user)
-        role = teacher.role.role_name.upper()
-    except Teacher.DoesNotExist:
-        teacher = None
-        role = None
+    selected_dept_id = request.GET.get('department')
+    selected_teacher_id = request.GET.get('teacher')
 
-    # Role-based response filtering
+    departments = Department.objects.all()
+    teachers = Teacher.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Teacher.objects.none()
+    responses = StudentFeedbackResponse.objects.none()
+
     if is_admin:
-        responses = StudentFeedbackResponse.objects.filter(teacher__isnull=False)
-        print(">>> ADMIN: Total feedback responses:", responses.count())
-    elif role in ['HOD', 'TEACHER']:
-        responses = StudentFeedbackResponse.objects.filter(teacher__name=teacher.name)
-        print(f">>> Filtered responses using name: {teacher.name} → count: {responses.count()}")
+        if selected_teacher_id:
+            responses = StudentFeedbackResponse.objects.filter(teacher_id=selected_teacher_id)
+        else:
+            responses = StudentFeedbackResponse.objects.none()  # Show nothing if no teacher selected
 
-    else:
-        messages.error(request, "Access denied.")
-        return redirect('login')
 
-    # Individual Sessions (grouped by session_id)
+    elif user and not is_admin:
+        try:
+            teacher = Teacher.objects.get(user=user)
+            responses = StudentFeedbackResponse.objects.filter(teacher=teacher)
+        except Teacher.DoesNotExist:
+            messages.error(request, "Teacher not found.")
+            return redirect('login')
+
     grouped = {}
     for response in responses:
         grouped.setdefault(response.session_id, []).append(response)
@@ -947,7 +946,6 @@ def admin_student_feedback_responses(request):
             'responses': session_responses,
         })
 
-    # Summary section
     questions_with_responses = []
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
 
@@ -976,28 +974,22 @@ def admin_student_feedback_responses(request):
                 } for r in q_responses if r.response_text],
                 'total_responses': q_responses.count()
             })
-# Additional stats
-    avg_responses = 0
-    latest_submission = "--"
 
-    if feedback_sessions:
-        total_responses = responses.count()
-        avg_responses = round(total_responses / len(grouped), 2)
-
-        # Get latest submission datetime
-        latest_submission = max([s['submitted_at'] for s in feedback_sessions])
+    avg_responses = round(responses.count() / len(grouped), 2) if grouped else 0
+    latest_submission = max([s['submitted_at'] for s in feedback_sessions]) if feedback_sessions else "--"
 
     context = {
-    'feedback_sessions': feedback_sessions,
-    'questions_with_summary': questions_with_responses,
-    'total_questions': questions.count(),
-    'total_feedback_submissions': len(grouped),
-    'avg_responses_per_student': avg_responses,
-    'latest_submission': latest_submission
+        'departments': departments,
+        'teachers': teachers,
+        'selected_dept_id': int(selected_dept_id) if selected_dept_id else None,
+        'selected_teacher_id': int(selected_teacher_id) if selected_teacher_id else None,
+        'feedback_sessions': feedback_sessions,
+        'questions_with_summary': questions_with_responses,
+        'total_questions': questions.count(),
+        'total_feedback_submissions': len(grouped),
+        'avg_responses_per_student': avg_responses,
+        'latest_submission': latest_submission,
     }
-
-    # Additional stats
-   
 
     return render(request, 'admin_response.html', context)
 

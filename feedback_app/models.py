@@ -76,7 +76,8 @@ class Course(models.Model):
     pgm = models.ForeignKey(Programme, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.code} - {self.name}"
+
     
     
 # -------------------
@@ -87,7 +88,7 @@ class TeacherBatch(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)  # ADD THIS
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.teacher.name} - {self.batch.acad_year} - {self.course.code} - {self.department.dept_name}"

@@ -18,8 +18,8 @@ urlpatterns = [
     path('courses/<int:course_id>/batches/', views.batch_list, name='batch_list'),
     path('courses/<int:course_id>/batches/add/', views.add_batch, name='add_batch'),
 
-    path('batches/edit/<int:batch_id>/', views.edit_batch, name='edit_batch'),
-    path('batches/delete/<int:batch_id>/', views.delete_batch, name='delete_batch'),
+    path('batch/edit/<int:batch_id>/', views.edit_batch, name='edit_batch'),
+    path('batch/delete/<int:batch_id>/', views.delete_batch, name='delete_batch'),
 
     path('teachers/', views.teacher_list, name='teacher_list'),
     path('teachers/add/', views.add_teacher, name='add_teacher'),
@@ -51,6 +51,8 @@ urlpatterns = [
     path('student-feedback/teachers/', views.select_teacher_for_feedback, name='select_teacher_for_feedback'),
     path('student-feedback/teacher/<int:teacher_id>/', views.student_feedback_form_by_teacher, name='student_feedback_form_by_teacher'),
 
-    path('ajax/get-courses/', views.get_courses_by_department, name='get_courses_by_department'),
+    path('ajax/load-courses-teachers/', views.get_courses_teachers_by_department, name='load_courses_teachers'),
+    path('ajax/load-batches/', views.load_batches, name='load_batches'),
+
 ]
 

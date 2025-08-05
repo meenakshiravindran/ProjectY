@@ -63,8 +63,8 @@ class BatchForm(forms.ModelForm):
             'part': 'Part',
         }
         widgets = {
-            'acad_year': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 2023'}),
-            'part': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. A or B'}),
+            'acad_year': forms.TextInput(attrs={'class': 'form-control text-start', 'placeholder': 'e.g. 2023'}),
+            'part': forms.TextInput(attrs={'class': 'form-control text-start', 'placeholder': 'e.g. A or B'}),
         }
 
 from django import forms
@@ -135,25 +135,49 @@ class TeacherEditForm(forms.ModelForm):
         }   
 
 from django import forms
-from .models import TeacherBatch, Teacher, Batch, Course, Department
+from .models import Department, Course, Batch, Teacher
 
 class TeacherBatchAssignForm(forms.Form):
-    course = forms.ModelChoiceField(
-        queryset=Course.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    batch = forms.ModelChoiceField(
-        queryset=Batch.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
     department = forms.ModelChoiceField(
         queryset=Department.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.none(),  # initially empty
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    batch = forms.ModelChoiceField(
+        queryset=Batch.objects.none(),  # initially empty
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
     teachers = forms.ModelMultipleChoiceField(
-        queryset=Teacher.objects.all(),
+        queryset=Teacher.objects.none(),  # initially empty
         widget=forms.CheckboxSelectMultiple()
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if 'department' in self.data:
+            try:
+                dept_id = int(self.data.get('department'))
+                self.fields['course'].queryset = Course.objects.filter(dept_id=dept_id)
+                self.fields['teachers'].queryset = Teacher.objects.filter(dept_id=dept_id)
+            except (ValueError, TypeError):
+                pass
+
+        elif 'department' in self.initial:
+            dept = self.initial['department']
+            self.fields['course'].queryset = Course.objects.filter(dept=dept)
+            self.fields['teachers'].queryset = Teacher.objects.filter(dept=dept)
+
+        if 'course' in self.data:
+            try:
+                course_id = int(self.data.get('course'))
+                self.fields['batch'].queryset = Batch.objects.filter(course_id=course_id)
+            except (ValueError, TypeError):
+                pass
+
 
 from django import forms
 from .models import FeedbackQuestion, FeedbackQOption

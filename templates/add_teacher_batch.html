@@ -21,12 +21,14 @@
 
                 <div class="mb-3">
                     <label for="id_batch" class="form-label">Batch</label>
-                    {{ form.batch }}
+                    <select name="batch" class="form-select" id="id_batch" data-selected="{{ form.batch.value }}">
+                    </select>
+                    
                 </div>
 
                 
 
-                <div class="mb-3">
+                <div class="mb-3" id="teacher-container">
                     <label class="form-label">Select Teacher(s)</label>
                     {% for checkbox in form.teachers %}
                     <div class="form-check">
@@ -48,28 +50,85 @@
     document.addEventListener('DOMContentLoaded', function () {
         const departmentSelect = document.getElementById('id_department');
         const courseSelect = document.getElementById('id_course');
+        const batchSelect = document.getElementById('id_batch');
+        const teacherContainer = document.getElementById('teacher-container');
     
+        // 1️⃣ Handle department change
         departmentSelect.addEventListener('change', function () {
             const deptId = this.value;
-    
-            // Clear existing course options
             courseSelect.innerHTML = '<option value="">---------</option>';
+            batchSelect.innerHTML = '<option value="">---------</option>';
+            teacherContainer.innerHTML = '<label class="form-label">Select Teacher(s)</label>';
     
             if (deptId) {
-                fetch(`/ajax/get-courses/?department_id=${deptId}`)
+                fetch(`/ajax/load-courses-teachers/?department_id=${deptId}`)
                     .then(response => response.json())
                     .then(data => {
-                        data.forEach(course => {
+                        // Populate courses
+                        data.courses.forEach(course => {
                             const option = document.createElement('option');
                             option.value = course.course_id;
-                            option.textContent = course.name;
+                            option.textContent = `${course.code} - ${course.name}`;
                             courseSelect.appendChild(option);
+                        });
+    
+                        // Populate teachers
+                        data.teachers.forEach(teacher => {
+                            const div = document.createElement('div');
+                            div.classList.add('form-check');
+    
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.classList.add('form-check-input');
+                            input.name = 'teachers';
+                            input.value = teacher.teacher_id;
+                            input.id = `teacher_${teacher.teacher_id}`;
+    
+                            const label = document.createElement('label');
+                            label.classList.add('form-check-label');
+                            label.htmlFor = input.id;
+                            label.textContent = teacher.name;
+    
+                            div.appendChild(input);
+                            div.appendChild(label);
+                            teacherContainer.appendChild(div);
                         });
                     });
             }
         });
+    
+        // 2️⃣ Handle course change
+        courseSelect.addEventListener('change', function () {
+            const courseId = this.value;
+            batchSelect.innerHTML = '<option value="">---------</option>';
+    
+            if (courseId) {
+                fetch(`/ajax/load-batches/?course_id=${courseId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const selectedBatchId = batchSelect.dataset.selected;
+                        data.batches.forEach(batch => {
+                            const option = document.createElement('option');
+                            option.value = batch.batch_id;
+                            option.textContent = `${batch.acad_year} - ${batch.part}`;
+                            if (selectedBatchId && batch.batch_id == selectedBatchId) {
+                                option.selected = true;
+                            }
+                            batchSelect.appendChild(option);
+                        });
+                    });
+            }
+        });
+    
+        // 3️⃣ Trigger course change manually on page load if value is pre-selected
+        if (courseSelect.value) {
+            const event = new Event('change');
+            courseSelect.dispatchEvent(event);
+        }
     });
     </script>
+    
+
     
 {% endblock %}
 

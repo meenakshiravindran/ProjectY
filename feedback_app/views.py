@@ -392,23 +392,22 @@ def add_batch(request, course_id):
 @login_required
 def edit_batch(request, batch_id):
     batch = get_object_or_404(Batch, pk=batch_id)
+
     if request.method == 'POST':
         form = BatchForm(request.POST, instance=batch)
         if form.is_valid():
             form.save()
-            return redirect('batch_list', course_id=batch.course.pk)
-    else:
-        form = BatchForm(instance=batch)
-    return render(request, 'add_batch.html', {'form': form, 'course': batch.course})
+
+    # ✅ Always redirect to course list after update (modal submission)
+    return redirect('course_list')
+
 
 @login_required
 def delete_batch(request, batch_id):
     batch = get_object_or_404(Batch, pk=batch_id)
-    course_id = batch.course.pk
     if request.method == 'POST':
         batch.delete()
-        return redirect('batch_list', course_id=course_id)
-    return render(request, 'delete_batch.html', {'batch': batch})
+    return redirect('course_list')
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -657,6 +656,26 @@ def delete_teacher_batch_group(request, batch_id, course_id, dept_id):
         messages.success(request, "All assignments deleted successfully.")
     return redirect('teacher_batch_list')
 
+@login_required
+def get_courses_teachers_by_department(request):
+    dept_id = request.GET.get('department_id')
+
+    courses = Course.objects.filter(dept_id=dept_id).values('course_id', 'code', 'name')
+    teachers = Teacher.objects.filter(dept_id=dept_id).values('teacher_id', 'name')
+
+    return JsonResponse({
+        'courses': list(courses),
+        'teachers': list(teachers)
+    })
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Batch
+
+@login_required
+def load_batches(request):
+    course_id = request.GET.get('course_id')
+    batches = Batch.objects.filter(course_id=course_id).values('batch_id', 'acad_year', 'part')
+    return JsonResponse({'batches': list(batches)})
 
 # views.py - Enhanced views with improved add_options and toggle functionality
 

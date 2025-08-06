@@ -286,18 +286,25 @@
     <div class="feedback-container">
         <div class="form-section">
             <div class="form-header">
-                <h2>Anonymous Feedback Form</h2>
+                <h2>NEHRU ARTS AND SCIENCE COLLEGE,KANHANGAD</h2>
             </div>
             <div class="form-body">
                 <p class="intro-text text-center">Increase engagement and honesty by removing fear of judgment</p>
     
                 {% if teacher %}
                 <div class="teacher-info">
-                    <p><strong>For:</strong> <span class="teacher-badge">{{ teacher.name }}</span></p>
+                    <div class="teacher-info text-center mb-4">
+                        {% if teacher.profile_picture %}
+                            <img src="{{ teacher.profile_picture.url }}" alt="Profile Picture"class="rounded-circle shadow" height="100" width="100"style="object-fit: cover; border: 2px solid #ccc;">
+                        {% else %}
+                            <img src="/media/profile_pics/default.jpg" alt="Default Profile Picture" class="rounded-circle shadow" height="100" width="100" style="object-fit: cover; border: 2px solid #ccc;">
+                        {% endif %}
+                        <div style="margin-top: 15px;">
+                    <p><strong> <span class="teacher-badge">{{ teacher.name }}</span></p>
                     <p class="mb-1"><small>Your feedback is valuable and completely anonymous. Please answer all questions honestly.</small></p>
                     <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
                 </div>
-                {% endif %}
+                {% endif %}
     
                 <div id="message-container"></div>
     

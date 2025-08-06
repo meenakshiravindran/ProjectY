@@ -424,17 +424,22 @@ from django.contrib import messages
 def teacher_list(request):
     selected_dept = request.GET.get('department')
     departments = Department.objects.all()
-    
+
     if selected_dept:
         teachers = Teacher.objects.filter(dept__dept_name=selected_dept)
     else:
         teachers = Teacher.objects.all()
-    
-    return render(request, 'teacher_list.html', {
+
+    # ✅ This is essential for showing errors in modal
+    reset_errors = request.session.pop('reset_errors', None)
+    reset_user_id = request.session.pop('reset_user_id', None)
+
+    return render(request, 'teacher_list.html',{
         'teachers': teachers,
         'departments': departments,
         'selected_dept': selected_dept,
-    })
+        'reset_errors': reset_errors,
+        'reset_user_id': reset_user_id,})
 
 @login_required()
 def add_teacher(request):
@@ -493,33 +498,48 @@ def delete_teacher(request, pk):
         return redirect('teacher_list')
     return render(request, 'delete_teacher.html', {'teacher': teacher})
 
-@login_required()
+@login_required
 def change_teacher_password(request, user_id):
     user = get_object_or_404(User, pk=user_id)
+
     if request.method == 'POST':
-        form = PasswordChangeForm(user, request.POST)
-        if form.is_valid():
-            form.save()
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if not old_password or not new_password or not confirm_password:
+            messages.error(request, "All fields are required.")
+        elif not user.check_password(old_password):
+            messages.error(request, "Old password is incorrect.")
+        elif new_password != confirm_password:
+            messages.error(request, "New password and confirm password do not match.")
+        else:
+            user.set_password(new_password)
+            user.save()
             update_session_auth_hash(request, user)
-            messages.success(request, 'Password updated successfully.')
-            return redirect('teacher_list')
-    else:
-        form = PasswordChangeForm(user)
-    return render(request, 'change_password.html', {'form': form, 'username': user.username})
+            # messages.success(request, f"Password updated successfully for {user.username}.")
+    
+    return redirect('teacher_list')
+
 from django.contrib.auth.forms import SetPasswordForm
 
-@login_required()
-def reset_teacher_password(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
+@login_required
+def reset_teacher_password(request, teacher_id):
+    try:
+        teacher = Teacher.objects.get(pk=teacher_id)
+        user = teacher.user
+    except Teacher.DoesNotExist:
+        messages.error(request, "❌ Teacher not found.")
+        return redirect('teacher_list')
+
     if request.method == 'POST':
         form = SetPasswordForm(user, request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, f'Password reset successfully for {user.username}.')
-            return redirect('teacher_list')
-    else:
-        form = SetPasswordForm(user)
-    return render(request, 'reset_password.html', {'form': form, 'username': user.username})
+            messages.success(request, f"✅ Password reset successfully for {user.username}")
+        else:
+            messages.error(request, "❌ Failed to reset password. Please check the input.")
+        return redirect('teacher_list')
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -817,6 +837,9 @@ from .models import FeedbackQuestion, FeedbackQOption, StudentFeedbackResponse, 
 
 def student_feedback_form(request):
     """Display feedback form to students (no login required)"""
+    teacher_id = request.GET.get('teacher_id')
+    teacher = get_object_or_404(Teacher, teacher_id=teacher_id)
+
     # Get only active questions
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
 
@@ -839,6 +862,7 @@ def student_feedback_form(request):
             desc_questions.append(question)
 
     context = {
+        'teacher': teacher,
         'mcq_questions': mcq_questions,
         'desc_questions': desc_questions,
         'session_id': request.session['student_feedback_session'],

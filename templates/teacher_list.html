@@ -62,6 +62,17 @@
     <a href="{% url 'add_teacher' %}" class="glass-button mt-2">➕ Add Teacher</a>
 </div>
 
+<!-- Show Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Department Filter -->
 <form method="get" class="mb-3 d-flex align-items-center gap-2">
     <label for="department" class="fw-bold">Filter by Department:</label>
     <select name="department" id="department" class="form-select w-auto" onchange="this.form.submit()">
@@ -74,14 +85,13 @@
     </select>
 </form>
 
+<!-- Teacher Table -->
 <table class="table table-bordered table-striped shadow-sm">
     <thead class="table-dark">
         <tr>
             <th>SI.No</th>
             <th>Name</th>
-            <th>
-                Department
-            </th>
+            <th>Department</th>
             <th>Designation</th>
             <th>Gender</th>
             <th>Role</th>
@@ -91,42 +101,151 @@
     </thead>
     <tbody>
         {% for teacher in teachers %}
-        <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ teacher.name }}</td>
-            <td>{{ teacher.dept.dept_name }}</td>
-            <td>{{ teacher.designation }}</td>
-            <td>{{ teacher.gender }}</td>
-            <td>{{ teacher.role.role_name }}</td>
-            <td><form action="{% url 'toggle_feedback' teacher.teacher_id %}" method="post">
-        {% csrf_token %}
-        <div class="form-check form-switch d-flex justify-content-center">
-            <input class="form-check-input" type="checkbox" onchange="this.form.submit()" {% if teacher.fb_active %}checked{% endif %}>
-        </div>
-    </form></td>
-            <td>
-                <a href="{% url 'edit_teacher' teacher.teacher_id %}" title="Edit" class="text-warning me-2" style="font-size: 1.2rem;">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                <form action="{% url 'delete_teacher' teacher.teacher_id %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" title="Delete" class="text-danger border-0 bg-transparent p-0 me-2" style="font-size: 1.2rem;">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </form>
-                <a href="{% url 'change_teacher_password' teacher.user.id %}" class="btn btn-outline-primary btn-sm me-2">
-                    Change Password
-                </a>
-                <a href="{% url 'reset_teacher_password' teacher.user.id %}" class="btn btn-outline-secondary btn-sm">
-                    Reset Password
-                </a>
-            </td>
-            
-        </tr>
-        {% empty %}
-        <tr><td colspan="8" class="text-center">No teachers found.</td></tr>
-        {% endfor %}
+<tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ teacher.name }}</td>
+    <td>{{ teacher.dept.dept_name }}</td>
+    <td>{{ teacher.designation }}</td>
+    <td>{{ teacher.gender }}</td>
+    <td>{{ teacher.role.role_name }}</td>
+    <td>
+        <form action="{% url 'toggle_feedback' teacher.teacher_id %}" method="post">
+            {% csrf_token %}
+            <div class="form-check form-switch d-flex justify-content-center">
+                <input class="form-check-input" type="checkbox" onchange="this.form.submit()" {% if teacher.fb_active %}checked{% endif %}>
+            </div>
+        </form>
+    </td>
+    <td>
+        <a href="{% url 'edit_teacher' teacher.teacher_id %}" title="Edit" class="text-warning me-2" style="font-size: 1.2rem;">
+            <i class="bi bi-pencil-square"></i>
+        </a>
+        <form action="{% url 'delete_teacher' teacher.teacher_id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" title="Delete" class="text-danger border-0 bg-transparent p-0 me-2" style="font-size: 1.2rem;">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
+
+        <!-- Change Password Button -->
+        <button type="button" class="btn btn-outline-primary btn-sm me-2"
+                data-bs-toggle="modal" data-bs-target="#changePasswordModal{{ teacher.teacher_id }}">
+            Change Password
+        </button>
+
+        <!-- Reset Password -->
+        <!-- Reset Password Button -->
+        <button type="button" class="btn btn-outline-secondary btn-sm"
+        data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ teacher.teacher_id }}">
+        Reset Password
+        </button>
+
+    </td>
+</tr>
+
+<!-- Modal placed just after each row, inside the loop -->
+<div class="modal fade" id="changePasswordModal{{ teacher.teacher_id }}" tabindex="-1"
+     aria-labelledby="changePasswordModalLabel{{ teacher.teacher_id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'change_teacher_password' teacher.user.id %}">
+            {% csrf_token %}
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="changePasswordModalLabel{{ teacher.teacher_id }}">
+                        Change Password for {{ teacher.name }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="old_password{{ teacher.teacher_id }}" class="form-label">Old Password</label>
+                        <input type="password" class="form-control" id="old_password{{ teacher.teacher_id }}" name="old_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password{{ teacher.teacher_id }}" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password{{ teacher.teacher_id }}" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password{{ teacher.teacher_id }}" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirm_password{{ teacher.teacher_id }}" name="confirm_password" required>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Update Password</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal{{ teacher.teacher_id }}" tabindex="-1"
+     aria-labelledby="resetPasswordModalLabel{{ teacher.teacher_id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'reset_teacher_password' teacher.teacher_id %}">
+            {% csrf_token %}
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="resetPasswordModalLabel{{ teacher.teacher_id }}">
+                        Reset Password for {{ teacher.name }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    {% if reset_errors and reset_user_id == teacher.user.id %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                {% for field_errors in reset_errors.values %}
+                                    {% for error in field_errors %}
+                                        <li>{{ error.message }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label" for="new_password1_{{ teacher.teacher_id }}">New Password</label>
+                        <input type="password" class="form-control" id="new_password1_{{ teacher.teacher_id }}" name="new_password1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="new_password2_{{ teacher.teacher_id }}">Confirm Password</label>
+                        <input type="password" class="form-control" id="new_password2_{{ teacher.teacher_id }}" name="new_password2" required>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Reset Password</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endfor %}
+
     </tbody>
 </table>
-{% endblock %}
+{% if reset_errors and reset_user_id %}
+<script>
+    var resetModal = new bootstrap.Modal(document.getElementById('resetPasswordModal{{ reset_user_id }}'));
+    resetModal.show();
+</script>
+{% endif %}
 
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

@@ -26,7 +26,7 @@ urlpatterns = [
     path('teachers/edit/<int:pk>/', views.edit_teacher, name='edit_teacher'),
     path('teachers/delete/<int:pk>/', views.delete_teacher, name='delete_teacher'),
     path('teacher/<int:user_id>/change-password/', views.change_teacher_password, name='change_teacher_password'),
-    path('teacher/<int:user_id>/reset-password/', views.reset_teacher_password, name='reset_teacher_password'),
+    path('teacher/<int:teacher_id>/reset-password/', views.reset_teacher_password, name='reset_teacher_password'),
     path('teachers/<int:teacher_id>/toggle_feedback/', views.toggle_feedback_status, name='toggle_feedback'),
 
 

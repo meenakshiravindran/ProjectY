@@ -20,6 +20,10 @@ DESIGNATION_CHOICES = [
     ('Professor', 'Professor'),
     ('Guest Lecturer', 'Guest Lecturer'),
 ]
+PART_CHOICES = [
+    ('Part A', 'Part A'),
+    ('Part B', 'Part B'),
+]
 
 class ProgrammeForm(forms.ModelForm):
     class Meta:
@@ -63,8 +67,13 @@ class BatchForm(forms.ModelForm):
             'part': 'Part',
         }
         widgets = {
-            'acad_year': forms.TextInput(attrs={'class': 'form-control text-start', 'placeholder': 'e.g. 2023'}),
-            'part': forms.TextInput(attrs={'class': 'form-control text-start', 'placeholder': 'e.g. A or B'}),
+            'acad_year': forms.TextInput(attrs={
+                'class': 'form-control text-start',
+                'placeholder': 'e.g. 2023'
+            }),
+            'part': forms.Select(choices=PART_CHOICES, attrs={
+                'class': 'form-select'
+            }),
         }
 
 from django import forms

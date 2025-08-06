@@ -143,22 +143,25 @@
     </td>
 </tr>
 
-<!-- Modal placed just after each row, inside the loop -->
+{% endfor %}
+
+</tbody>
+</table>
+<!-- ✅ Place all modals here -->
+{% for teacher in teachers %}
+<!-- Change Password Modal -->
 <div class="modal fade" id="changePasswordModal{{ teacher.teacher_id }}" tabindex="-1"
      aria-labelledby="changePasswordModalLabel{{ teacher.teacher_id }}" aria-hidden="true">
     <div class="modal-dialog">
         <form method="post" action="{% url 'change_teacher_password' teacher.user.id %}">
             {% csrf_token %}
             <div class="modal-content">
-                <!-- Modal Header -->
                 <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title" id="changePasswordModalLabel{{ teacher.teacher_id }}">
                         Change Password for {{ teacher.name }}
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
-                <!-- Modal Body -->
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="old_password{{ teacher.teacher_id }}" class="form-label">Old Password</label>
@@ -173,8 +176,6 @@
                         <input type="password" class="form-control" id="confirm_password{{ teacher.teacher_id }}" name="confirm_password" required>
                     </div>
                 </div>
-
-                <!-- Modal Footer -->
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success">Update Password</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -191,15 +192,12 @@
         <form method="post" action="{% url 'reset_teacher_password' teacher.teacher_id %}">
             {% csrf_token %}
             <div class="modal-content">
-                <!-- Modal Header -->
                 <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title" id="resetPasswordModalLabel{{ teacher.teacher_id }}">
                         Reset Password for {{ teacher.name }}
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
-                <!-- Modal Body -->
                 <div class="modal-body">
                     {% if reset_errors and reset_user_id == teacher.user.id %}
                         <div class="alert alert-danger">
@@ -212,19 +210,29 @@
                             </ul>
                         </div>
                     {% endif %}
-
                     <div class="mb-3">
                         <label class="form-label" for="new_password1_{{ teacher.teacher_id }}">New Password</label>
-                        <input type="password" class="form-control" id="new_password1_{{ teacher.teacher_id }}" name="new_password1" required>
+                        <input type="password" class="form-control {% if reset_errors and reset_user_id == teacher.user.id|stringformat:"s" and reset_errors.new_password1 %}is-invalid{% endif %}" 
+                               id="new_password1_{{ teacher.teacher_id }}" name="new_password1" required>
+                        {% if reset_errors and reset_user_id == teacher.user.id|stringformat:"s" and reset_errors.new_password1 %}
+                            <div class="invalid-feedback">
+                                {{ reset_errors.new_password1.0.message }}
+                            </div>
+                        {% endif %}
                     </div>
-
+                    
                     <div class="mb-3">
                         <label class="form-label" for="new_password2_{{ teacher.teacher_id }}">Confirm Password</label>
-                        <input type="password" class="form-control" id="new_password2_{{ teacher.teacher_id }}" name="new_password2" required>
+                        <input type="password" class="form-control {% if reset_errors and reset_user_id == teacher.user.id|stringformat:"s" and reset_errors.new_password2 %}is-invalid{% endif %}" 
+                               id="new_password2_{{ teacher.teacher_id }}" name="new_password2" required>
+                        {% if reset_errors and reset_user_id == teacher.user.id|stringformat:"s" and reset_errors.new_password2 %}
+                            <div class="invalid-feedback">
+                                {{ reset_errors.new_password2.0.message }}
+                            </div>
+                        {% endif %}
                     </div>
+                    
                 </div>
-
-                <!-- Modal Footer -->
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success">Reset Password</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -233,12 +241,8 @@
         </form>
     </div>
 </div>
-
-
 {% endfor %}
 
-    </tbody>
-</table>
 {% if reset_errors and reset_user_id %}
 <script>
     var resetModal = new bootstrap.Modal(document.getElementById('resetPasswordModal{{ reset_user_id }}'));

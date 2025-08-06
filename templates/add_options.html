@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <h4 class="mb-0">🎛️ Manage Options</h4>
                     <small>Question: {{ question.q_desc }}</small>
                 </div>
@@ -41,7 +41,7 @@
 
         <div class="col-md-4">
             <div class="card">
-                <div class="card-header bg-info text-white">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <h5 class="mb-0">📋 Current Options</h5>
                 </div>
                 <div class="card-body">
@@ -50,7 +50,7 @@
                         {% for opt in options %}
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="badge bg-primary me-2">{{ opt.ans_id }}</span>
+                                <span class="badge me-2" style="background-color: #8e2de2; color: white;">{{ opt.ans_id }}</span>
                                 <span>{{ opt.answer }}</span>
                             </div>
                             <form method="post" action="{% url 'delete_option' opt.id %}" style="display: inline;">

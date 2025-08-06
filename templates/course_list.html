@@ -162,9 +162,12 @@
                                                     <label class="form-label">Academic Year:</label>
                                                     <input type="text" class="form-control text-start" name="acad_year" value="{{ batch.acad_year }}">
                                                 </div>
-                                                <div class="mb-3">
+                                            
+                                                 <div class="mb-3">
                                                     <label class="form-label">Part:</label>
-                                                    <input type="text" class="form-control text-start" name="part" value="{{ batch.part }}">
+                                                        {{ form.part.label_tag }}
+                                                        {{ form.part }}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">

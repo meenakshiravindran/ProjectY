@@ -536,8 +536,11 @@ def reset_teacher_password(request, teacher_id):
         form = SetPasswordForm(user, request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, f"✅ Password reset successfully for {user.username}")
+            # messages.success(request, f"✅ Password reset successfully for {user.username}")
         else:
+            # ✅ Store errors and teacher ID in session
+            request.session['reset_errors'] = form.errors.get_json_data()
+            request.session['reset_user_id'] = str(user.id)
             messages.error(request, "❌ Failed to reset password. Please check the input.")
         return redirect('teacher_list')
 

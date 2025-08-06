@@ -46,9 +46,32 @@
                         </form>
 
                         <!-- Delete Button -->
-                        <a href="{% url 'delete_question' q.q_id %}" class="btn btn-sm btn-danger ms-1">
+                        <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ q.q_id }}">
                             <i class="fas fa-trash"></i> Delete
-                        </a>
+                        </button>
+    
+                        <!-- Delete Confirmation Modal -->
+                        <div class="modal fade" id="confirmDeleteModal{{ q.q_id }}" tabindex="-1" aria-labelledby="confirmDeleteModalLabel{{ q.q_id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                            <form method="POST" action="{% url 'delete_question' q.q_id %}">
+                                {% csrf_token %}
+                                <div class="modal-header bg-black text-white">
+                                <h5 class="modal-title" id="confirmDeleteModalLabel{{ q.q_id }}">Confirm Deletion</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                <p>Are you sure you want to delete the following question?</p>
+                                <p><strong>{{ q.q_desc }}</strong> ({{ q.q_type }})</p>
+                                </div>
+                                <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                            </div>
+                        </div>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body {% if not q.active %}text-muted{% endif %}">
@@ -61,8 +84,14 @@
 
                         {% if q.q_type == 'MCQ' %}
                         <div>
-                            <span class="badge bg-info">{{ q.feedbackqoption_set.count }} options</span>
-                            <a href="{% url 'add_options' q.q_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            <span class="badge" style="color: #667eea; border: 1px solid #667eea; background-color: transparent;">{{ q.feedbackqoption_set.count }} options</span>
+                            <a href="{% url 'add_options' q.q_id %}" class="btn btn-sm btn-outline ms-2" style="
+                                color: #667eea; 
+                                border: 1px solid #667eea; 
+                                background-color: transparent;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.color='white'; this.style.borderColor='transparent';" 
+                            onmouseout="this.style.background='transparent'; this.style.color='#667eea'; this.style.borderColor='#667eea';">
                                 <i class="fas fa-cog"></i> Manage Options
                             </a>
                         </div>

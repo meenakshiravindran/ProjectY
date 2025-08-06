@@ -996,18 +996,28 @@ def admin_student_feedback_responses(request):
 
     for question in questions:
         q_responses = responses.filter(question=question)
+
         if question.q_type == 'MCQ':
-            option_counts = {}
+            # Fetch all possible options for the question
+            all_options = FeedbackQOption.objects.filter(q=question).order_by('ans_id')
+            
+            # Initialize all options with 0 count
+            option_counts = {opt.answer: 0 for opt in all_options}
+
+            # Count actual responses
             for r in q_responses:
                 if r.selected_option:
                     key = r.selected_option.answer
-                    option_counts[key] = option_counts.get(key, 0) + 1
+                    option_counts[key] += 1
+
             questions_with_responses.append({
                 'question': question,
                 'type': 'MCQ',
                 'option_counts': option_counts,
-                'total_responses': q_responses.count()
+                'total_responses': q_responses.count(),
+                'all_options': [opt.answer for opt in all_options],  # <- for template use
             })
+
         elif question.q_type == 'DESC':
             questions_with_responses.append({
                 'question': question,

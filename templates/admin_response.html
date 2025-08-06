@@ -365,7 +365,7 @@
 
                                 {% for item in questions_with_summary %}
                                 <div class="question-summary-card mb-4">
-                                    <div class="question-header">
+                                    <div class="question-header" style="cursor: pointer;" onclick="toggleSummaryContent({{ forloop.counter }})">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
                                                 <span class="question-type-badge {% if item.type == 'MCQ' %}mcq-badge{% else %}desc-badge{% endif %}">
@@ -381,52 +381,53 @@
                                         </div>
                                     </div>
 
-                                    {% if item.type == 'MCQ' %}
-                                        {% if item.total_responses > 0 %}
-                                            <div class="rating-breakdown">
-                                                {% for option, count in item.option_counts.items %}
-                                                    {% widthratio count item.total_responses 100 as percentage %}
-                                                    <div class="rating-row">
-                                                        <div class="rating-label">{{ option }}</div>
-                                                        <div class="rating-bar-container">
-                                                            <div class="rating-bar {% if percentage >= 70 %}high-rating{% elif percentage >= 40 %}medium-rating{% else %}low-rating{% endif %}" 
-                                                                 style="width: {{ percentage }}%"></div>
+                                    <div class="summary-content" id="summaryContent-{{ forloop.counter }}" style="display: none;">
+                                        {% if item.type == 'MCQ' %}
+                                            {% if item.total_responses > 0 %}
+                                                <div class="rating-breakdown">
+                                                    {% for option, count in item.option_counts.items %}
+                                                        {% widthratio count item.total_responses 100 as percentage %}
+                                                        <div class="rating-row">
+                                                            <div class="rating-label">{{ option }}</div>
+                                                            <div class="rating-bar-container">
+                                                                <div class="rating-bar {% if percentage >= 70 %}high-rating{% elif percentage >= 40 %}medium-rating{% else %}low-rating{% endif %}" 
+                                                                    style="width: {{ percentage }}%"></div>
+                                                            </div>
+                                                            <div class="rating-count">{{ count }}</div>
+                                                            <div class="rating-percentage">{{ percentage }}%</div>
                                                         </div>
-                                                        <div class="rating-count">{{ count }}</div>
-                                                        <div class="rating-percentage">{{ percentage }}%</div>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        {% else %}
-                                            <div class="no-responses-state">
-                                                <i class="fas fa-chart-bar no-responses-icon"></i>
-                                                <h6>No responses yet</h6>
-                                                <p class="mb-0">Students haven't responded to this question.</p>
-                                            </div>
-                                        {% endif %}
-
-                                    {% elif item.type == 'DESC' %}
-                                        {% if item.responses %}
-                                            <div class="desc-responses-container">
-                                                {% for response in item.responses %}
-                                                    <div class="desc-response-item">
-                                                        <div class="desc-response-header">
-                                                            <span class="feedback-number">Feedback #{{ response.feedback_number }}</span>
-                                                            <span class="submission-date">{{ response.submitted_at|date:"M d, Y H:i" }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <div class="no-responses-state">
+                                                    <i class="fas fa-chart-bar no-responses-icon"></i>
+                                                    <h6>No responses yet</h6>
+                                                    <p class="mb-0">Students haven't responded to this question.</p>
+                                                </div>
+                                            {% endif %}
+                                        {% elif item.type == 'DESC' %}
+                                            {% if item.responses %}
+                                                <div class="desc-responses-container">
+                                                    {% for response in item.responses %}
+                                                        <div class="desc-response-item">
+                                                            <div class="desc-response-header">
+                                                                <span class="feedback-number">Feedback #{{ response.feedback_number }}</span>
+                                                                <span class="submission-date">{{ response.submitted_at|date:"M d, Y H:i" }}</span>
+                                                            </div>
+                                                            <p class="desc-response-text">{{ response.text }}</p>
                                                         </div>
-                                                        <p class="desc-response-text">{{ response.text }}</p>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        {% else %}
-                                            <div class="no-responses-state">
-                                                <i class="fas fa-comments no-responses-icon"></i>
-                                                <h6>No responses yet</h6>
-                                                <p class="mb-0">Students haven't responded to this question.</p>
-                                            </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <div class="no-responses-state">
+                                                    <i class="fas fa-comments no-responses-icon"></i>
+                                                    <h6>No responses yet</h6>
+                                                    <p class="mb-0">Students haven't responded to this question.</p>
+                                                </div>
+                                            {% endif %}
                                         {% endif %}
-                                    {% endif %}
-                                </div>
+                                    </div>
+                                </div>                         
                                 {% empty %}
                                 <div class="alert alert-warning text-center">
                                     <h4>📝 No feedback questions available</h4>
@@ -443,6 +444,14 @@
 </div>
 
 <script>
+    function toggleSummaryContent(id) {
+    const content = document.getElementById(`summaryContent-${id}`);
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+    } else {
+        content.style.display = 'none';
+    }
+}
     // Animate rating bars on page load
     document.addEventListener('DOMContentLoaded', function() {
         // Animate rating bars

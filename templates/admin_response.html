@@ -391,7 +391,9 @@
                                                             <div class="rating-label">{{ option }}</div>
                                                             <div class="rating-bar-container">
                                                                 <div class="rating-bar {% if percentage >= 70 %}high-rating{% elif percentage >= 40 %}medium-rating{% else %}low-rating{% endif %}" 
-                                                                    style="width: {{ percentage }}%"></div>
+                                                                style="width: 0%" data-width="{{ percentage }}%">
+                                                           </div>
+                                                           
                                                             </div>
                                                             <div class="rating-count">{{ count }}</div>
                                                             <div class="rating-percentage">{{ percentage }}%</div>
@@ -445,13 +447,25 @@
 
 <script>
     function toggleSummaryContent(id) {
-    const content = document.getElementById(`summaryContent-${id}`);
-    if (content.style.display === 'none') {
-        content.style.display = 'block';
-    } else {
-        content.style.display = 'none';
+        const content = document.getElementById(`summaryContent-${id}`);
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+    
+            // Animate only the bars inside this summary block
+            const ratingBars = content.querySelectorAll('.rating-bar');
+            ratingBars.forEach((bar, index) => {
+                const finalWidth = bar.dataset.width;  // ← get actual width
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = finalWidth;
+                }, 100 + (index * 50));
+            });
+        } else {
+            content.style.display = 'none';
+        }
     }
-}
+    
+
     // Animate rating bars on page load
     document.addEventListener('DOMContentLoaded', function() {
         // Animate rating bars

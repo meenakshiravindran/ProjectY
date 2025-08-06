@@ -26,7 +26,7 @@
                 <div
                     class="card-header d-flex justify-content-between align-items-center {% if not q.active %}bg-light text-muted{% endif %}">
                     <div>
-                        <h5 class="mb-0">{{ q.q_id }} - {{ q.q_type }}</h5>
+                        <h5 class="mb-0">{{ forloop.counter }}. {{ q.q_type }}</h5>
                     </div>
                     <div class="btn-group" role="group">
                         <!-- Toggle Active/Inactive -->

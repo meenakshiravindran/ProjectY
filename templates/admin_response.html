@@ -9,7 +9,7 @@
         border-radius: 15px;
         padding: 20px;
         margin-bottom: 30px;
-    }
+    }
 </style>
 <div class="container-fluid">
     <div class="row">
@@ -18,7 +18,7 @@
                 <div class="welcome-banner">
                     <h3 class="mb-0">📊 Student Feedback Responses</h3>
                     <small>Review all anonymous student feedback submissions</small>
-                </div>
+                </div>
                 <div class="card-body">
 
                     <!-- Summary Stats -->
@@ -136,7 +136,7 @@
                                                 <div class="border rounded p-3 h-100">
                                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                                         <span class="fw-bold text-dark">
-                                                            Q{{ response.question.q_id }}. {{ response.question.q_desc }}
+                                                            {{ forloop.counter }}. {{ response.question.q_desc }}
                                                         </span>
                                                         <span class="badge bg-{% if response.question.q_type == 'MCQ' %}info{% else %}success{% endif %} badge-sm">
                                                             {{ response.question.q_type }}
@@ -152,6 +152,7 @@
                                                 </div>
                                             </div>
                                             {% endfor %}
+
                                         </div>
                                     </div>
                                 </div>
@@ -168,17 +169,14 @@
                         <div class="tab-pane fade" id="summary" role="tabpanel">
                             <div class="mt-4">
                                 <h5 class="mb-3">📊 Question-wise Summary</h5>
-
                                 {% for item in questions_with_summary %}
                                 <div class="card mb-4">
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
-                                                <span
-                                                    class="badge bg-{% if item.type == 'MCQ' %}primary{% else %}info{% endif %} me-2">
-                                                    {{ item.type }}
-                                                </span>
-                                                <strong>{{ item.question.q_id }}</strong>
+                                                <strong class="badge bg-{% if item.type == 'MCQ' %}primary{% else %}info{% endif %} me-2">
+                                                    {{ item.type }} {{ forloop.counter }}
+                                                </strong>
                                             </div>
                                             <small class="text-muted">{{ item.total_responses }} responses</small>
                                         </div>
@@ -186,6 +184,7 @@
                                             <strong>{{ item.question.q_desc }}</strong>
                                         </div>
                                     </div>
+
                                     <div class="card-body">
 
                                         {% if item.type == 'MCQ' %}

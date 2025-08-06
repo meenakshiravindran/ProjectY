@@ -6,26 +6,35 @@
     <form method="POST" id="questionForm">
         {% csrf_token %}
 
+        <!-- Question Description -->
         <div class="mb-3">
             <label for="{{ form.q_desc.id_for_label }}" class="form-label">Question Description</label>
             {{ form.q_desc }}
         </div>
 
+        <!-- Question Type -->
         <div class="mb-3">
             <label for="{{ form.q_type.id_for_label }}" class="form-label">Question Type</label>
             {{ form.q_type }}
         </div>
 
+        <!-- Active Toggle -->
         <div class="mb-3">
             <label for="{{ form.active.id_for_label }}" class="form-label">Active</label>
             {{ form.active }}
+        </div>
+
+        <!-- Required Toggle (Only for DESC) -->
+        <div class="mb-3" id="requiredField" style="display: none;">
+            <label for="{{ form.is_required.id_for_label }}" class="form-label">Required?</label>
+            {{ form.is_required }}
         </div>
 
         <!-- Options field for MCQ questions -->
         <div class="mb-3" id="optionsField" style="display: none;">
             <label for="options" class="form-label">Options</label>
             <input type="text" class="form-control" name="options" id="options"
-                placeholder="Enter options separated by commas (e.g., Excellent, Very Good, Good, Average, Poor)">
+                   placeholder="Enter options separated by commas (e.g., Excellent, Very Good, Good, Average, Poor)">
             <small class="form-text text-muted">Separate multiple options with commas</small>
         </div>
 
@@ -35,21 +44,24 @@
 </div>
 
 <script>
-    // Show/hide options field based on question type
-    document.getElementById('id_q_type').addEventListener('change', function () {
+    function toggleFields() {
+        const qType = document.getElementById('id_q_type').value;
         const optionsField = document.getElementById('optionsField');
-        if (this.value === 'MCQ') {
+        const requiredField = document.getElementById('requiredField');
+
+        if (qType === 'MCQ') {
             optionsField.style.display = 'block';
-            document.getElementById('options').required = true;
+            requiredField.style.display = 'none';
+        } else if (qType === 'DESC') {
+            optionsField.style.display = 'none';
+            requiredField.style.display = 'block';  // Show required toggle
         } else {
             optionsField.style.display = 'none';
-            document.getElementById('options').required = false;
+            requiredField.style.display = 'none';
         }
-    });
-
-    // Check initial state
-    if (document.getElementById('id_q_type').value === 'MCQ') {
-        document.getElementById('optionsField').style.display = 'block';
     }
+
+    document.getElementById('id_q_type').addEventListener('change', toggleFields);
+    toggleFields(); // Check on page load
 </script>
 {% endblock %}

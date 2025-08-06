@@ -810,27 +810,24 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import FeedbackQuestion, FeedbackQOption, StudentFeedbackResponse
-import uuid
 import json
+import uuid
+from .models import FeedbackQuestion, FeedbackQOption, StudentFeedbackResponse, Teacher
+
 
 def student_feedback_form(request):
     """Display feedback form to students (no login required)"""
     # Get only active questions
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
-    
-    # if not questions.exists():
-    #     messages.info(request, "No feedback questions are available at the moment.")
-    #     return render(request, 'no_questions.html')
-    
+
     # Generate a unique session ID for this feedback submission
     if 'student_feedback_session' not in request.session:
         request.session['student_feedback_session'] = str(uuid.uuid4())
-    
-    # Get MCQ questions with their options
+
+    # Separate MCQ and Descriptive questions
     mcq_questions = []
     desc_questions = []
-    
+
     for question in questions:
         if question.q_type == 'MCQ':
             options = FeedbackQOption.objects.filter(q=question).order_by('ans_id')
@@ -840,7 +837,7 @@ def student_feedback_form(request):
             })
         elif question.q_type == 'DESC':
             desc_questions.append(question)
-    
+
     context = {
         'mcq_questions': mcq_questions,
         'desc_questions': desc_questions,
@@ -854,26 +851,21 @@ def student_feedback_form(request):
 def submit_student_feedback(request):
     """Handle student feedback submission"""
     if request.method == 'POST':
-        import json
-        print("=== POST DATA ===")
-        print(json.dumps(request.POST.dict(), indent=2))
-
         try:
             session_id = request.session.get('student_feedback_session')
             if not session_id:
                 return JsonResponse({'success': False, 'error': 'Session expired. Please refresh the page.'})
-            
-            # Check if feedback already submitted for this session
+
+            # Prevent duplicate submissions
             existing_responses = StudentFeedbackResponse.objects.filter(session_id=session_id)
             if existing_responses.exists():
                 return JsonResponse({'success': False, 'error': 'Feedback already submitted from this session.'})
-            
+
             # Get all active questions
             questions = FeedbackQuestion.objects.filter(active=True)
             unanswered_questions = []
             responses_to_save = []
-            
-            # Validate all questions are answered
+
             for question in questions:
                 if question.q_type == 'MCQ':
                     option_id = request.POST.get(f'question_{question.q_id}')
@@ -889,65 +881,57 @@ def submit_student_feedback(request):
                             })
                         except FeedbackQOption.DoesNotExist:
                             unanswered_questions.append(f"Question {question.q_id} (Invalid option)")
-                
+
                 elif question.q_type == 'DESC':
                     response_text = request.POST.get(f'question_{question.q_id}', '').strip()
-                    if not response_text:
+                    if question.is_required and not response_text:
                         unanswered_questions.append(f"Question {question.q_id}")
                     else:
                         responses_to_save.append({
                             'question': question,
-                            'response_text': response_text,
+                            'response_text': response_text if response_text else None,
                             'session_id': session_id
                         })
-            
-            # If there are unanswered questions, return error
+
+            # If unanswered required questions exist, return error
             if unanswered_questions:
                 return JsonResponse({
-                    'success': False, 
-                    'error': f'Please answer all questions. Missing answers for: {", ".join(unanswered_questions)}'
+                    'success': False,
+                    'error': f'Please answer all required questions. Missing answers for: {", ".join(unanswered_questions)}'
                 })
-            
-            # Get feedback number for this submission (sequential numbering)
+
+            # Generate feedback number
             feedback_count = StudentFeedbackResponse.objects.values('session_id').distinct().count()
             feedback_number = feedback_count + 1
-            
-            teacher_id = request.POST.get('teacher_id')
-            teacher = None
-            if teacher_id:
-                try:
-                    teacher = Teacher.objects.get(pk=teacher_id)
-                except Teacher.DoesNotExist:
-                    teacher = None
 
-            # Save all responses
+            teacher_id = request.POST.get('teacher_id')
+            teacher = Teacher.objects.filter(pk=teacher_id).first() if teacher_id else None
+
+            # Save responses
             for response_data in responses_to_save:
                 StudentFeedbackResponse.objects.create(
                     question=response_data['question'],
                     selected_option=response_data.get('selected_option'),
                     response_text=response_data.get('response_text'),
                     session_id=session_id,
-                    feedback_number=feedback_number , # We'll add this field to model
-                    teacher=teacher 
+                    feedback_number=feedback_number,
+                    teacher=teacher
                 )
-            
-            # Clear the session after successful submission
+
+            # Clear session
             if 'student_feedback_session' in request.session:
                 del request.session['student_feedback_session']
-            
+
             return JsonResponse({
-                'success': True, 
+                'success': True,
                 'message': f'Thank you! Your feedback has been submitted successfully. (Feedback #{feedback_number})'
             })
-                
+
         except Exception as e:
-            import traceback
-            print("Exception occurred in feedback submission:")
-            traceback.print_exc()  # This will print the full error
             return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
 
-    
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
 @login_required
 def admin_student_feedback_responses(request):
     user = request.user

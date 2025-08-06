@@ -192,11 +192,10 @@ class TeacherBatchAssignForm(forms.Form):
 
 from django import forms
 from .models import FeedbackQuestion, FeedbackQOption
-
 class FeedbackQuestionForm(forms.ModelForm):
     class Meta:
         model = FeedbackQuestion
-        fields = ['q_desc', 'q_type', 'active']  # Removed 'q_id'
+        fields = ['q_desc', 'q_type', 'active', 'is_required']
         widgets = {
             'q_type': forms.Select(choices=[('MCQ', 'MCQ'), ('DESC', 'Descriptive')]),
             'q_desc': forms.Textarea(attrs={'rows': 3}),
@@ -206,6 +205,15 @@ class FeedbackQuestionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['q_desc'].widget.attrs.update({'class': 'form-control'})
         self.fields['q_type'].widget.attrs.update({'class': 'form-control'})
+        self.fields['active'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['is_required'].widget.attrs.update({'class': 'form-check-input'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('q_type') != 'DESC':
+            cleaned_data['is_required'] = False  # Always false for MCQ
+        return cleaned_data
+
 
 
 class FeedbackQOptionForm(forms.ModelForm):

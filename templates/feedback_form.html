@@ -284,18 +284,13 @@
 
 <body>
     <div class="feedback-container">
-        <!-- Form Section -->
         <div class="form-section">
             <div class="form-header">
                 <h2>Anonymous Feedback Form</h2>
             </div>
-
             <div class="form-body">
-                <p class="intro-text text-center">
-                    Increase engagement and honesty by removing fear of judgment
-                </p>
-
-                <!-- Teacher Info -->
+                <p class="intro-text text-center">Increase engagement and honesty by removing fear of judgment</p>
+    
                 {% if teacher %}
                 <div class="teacher-info">
                     <p><strong>For:</strong> <span class="teacher-badge">{{ teacher.name }}</span></p>
@@ -303,17 +298,13 @@
                     <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
                 </div>
                 {% endif %}
-
-                <div class="required-note">
-                    <strong>⚠️ Important:</strong> All questions must be answered before you can submit the form.
-                </div>
-
+    
                 <div id="message-container"></div>
-
+    
                 <form id="feedbackForm">
                     {% csrf_token %}
                     <input type="hidden" name="teacher_id" value="{{ teacher.pk }}">
-
+    
                     <!-- MCQ Questions -->
                     {% for mcq in mcq_questions %}
                     <div class="question-section" data-question-id="{{ mcq.question.q_id }}" data-question-type="MCQ">
@@ -324,182 +315,135 @@
                         <div class="rating-container">
                             {% for option in mcq.options %}
                             <div class="rating-option">
-                                <div class="rating-checkbox"
-                                     data-question="question_{{ mcq.question.q_id }}"
-                                     data-value="{{ option.id }}"></div>
+                                <div class="rating-checkbox" data-question="question_{{ mcq.question.q_id }}" data-value="{{ option.id }}"></div>
                                 <div class="rating-label">{{ option.answer }}</div>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
                     {% endfor %}
-
+    
                     <!-- Descriptive Questions -->
                     {% for desc_question in desc_questions %}
-                    <div class="text-question" data-question-id="{{ desc_question.q_id }}" data-question-type="DESC">
+                    <div class="text-question"
+                         data-question-id="{{ desc_question.q_id }}"
+                         data-question-type="DESC"
+                         data-required="{{ desc_question.is_required|yesno:'true,false' }}">
                         <div class="question-title">
                             {% with mcq_count=mcq_questions|length %}
                             {{ mcq_count|add:forloop.counter }}. {{ desc_question.q_desc }}
                             {% endwith %}
-                            <span style="color: red;">*</span>
+                            {% if desc_question.is_required %}
+                            <span style="color:red;">*</span>
+                            {% endif %}
                         </div>
                         <textarea class="text-area"
                                   name="question_{{ desc_question.q_id }}"
-                                  data-question="question_{{ desc_question.q_id }}"
                                   placeholder="Please provide your detailed response here..."></textarea>
                     </div>
                     {% endfor %}
-
-                    <button type="submit" class="submit-btn" id="submitBtn">
-                        Submit Feedback
-                    </button>
+    
+                    <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
                 </form>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         // Handle checkbox selection (single selection per question)
         document.querySelectorAll('.rating-checkbox').forEach(checkbox => {
             checkbox.addEventListener('click', function() {
                 const question = this.getAttribute('data-question');
-                const value = this.getAttribute('data-value');
-               
-                // Clear other selections for this question
-                document.querySelectorAll(`[data-question="${question}"]`).forEach(cb => {
-                    if (cb.classList.contains('rating-checkbox')) {
-                        cb.classList.remove('checked');
-                    }
-                });
-               
-                // Check this option
+                document.querySelectorAll(`[data-question="${question}"]`).forEach(cb => cb.classList.remove('checked'));
                 this.classList.add('checked');
             });
         });
-
+    
         // Form submission
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+    
             const submitBtn = document.getElementById('submitBtn');
             const messageContainer = document.getElementById('message-container');
-
-            // Validate all questions are answered
+    
             let unansweredQuestions = [];
-
-            // Check MCQ questions
+    
+            // Validate MCQ questions (always required)
             const mcqQuestions = document.querySelectorAll('[data-question-type="MCQ"]');
-            mcqQuestions.forEach(function(questionCard, index) {
+            mcqQuestions.forEach((questionCard, index) => {
                 const questionId = questionCard.getAttribute('data-question-id');
                 const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
                 if (!checked) {
-                    unansweredQuestions.push('Question ' + (index + 1) + ' (Multiple Choice)');
+                    unansweredQuestions.push(`Question ${index + 1} (Multiple Choice)`);
                 }
             });
-
-            // Check descriptive questions
+    
+            // Validate descriptive questions (only if required)
             const descQuestions = document.querySelectorAll('[data-question-type="DESC"]');
-            descQuestions.forEach(function(questionCard, index) {
+            descQuestions.forEach((questionCard, index) => {
+                const isRequired = questionCard.getAttribute('data-required') === 'true';
                 const questionId = questionCard.getAttribute('data-question-id');
-                const textarea = document.querySelector(`textarea[name="question_${questionId}"]`);
-                if (!textarea.value.trim()) {
-                    const questionNumber = mcqQuestions.length + index + 1;
-                    unansweredQuestions.push('Question ' + questionNumber + ' (Descriptive)');
+                const textarea = questionCard.querySelector('textarea');
+                if (isRequired && !textarea.value.trim()) {
+                    unansweredQuestions.push(`Question ${mcqQuestions.length + index + 1} (Descriptive)`);
                 }
             });
-
+    
             if (unansweredQuestions.length > 0) {
-                messageContainer.innerHTML =
-                    '<div class="message error">' +
-                    '❌ Please answer all questions before submitting.<br>' +
-                    'Missing answers for: ' + unansweredQuestions.join(', ') +
-                    '</div>';
+                messageContainer.innerHTML = `<div class="message error">❌ Please answer all required questions:<br>${unansweredQuestions.join(', ')}</div>`;
                 messageContainer.scrollIntoView({ behavior: 'smooth' });
                 return;
             }
-
-            // Disable submit button
+    
+            // Disable button and show loading
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
-
-            // Clear previous messages
-            messageContainer.innerHTML = '';
-
-            // Collect form data
+    
+            // Prepare FormData
             const formData = new FormData();
-           
-            // Add CSRF token
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             formData.append('csrfmiddlewaretoken', csrfToken);
-
-            // Add teacher_id
-            const teacherId = document.querySelector('[name=teacher_id]').value;
-            formData.append('teacher_id', teacherId);
-
+            formData.append('teacher_id', document.querySelector('[name=teacher_id]').value);
+    
             // Add MCQ answers
-            mcqQuestions.forEach(function(questionCard) {
+            mcqQuestions.forEach(questionCard => {
                 const questionId = questionCard.getAttribute('data-question-id');
                 const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
                 if (checked) {
                     formData.append(`question_${questionId}`, checked.getAttribute('data-value'));
                 }
             });
-
-            // Add descriptive answers
-            descQuestions.forEach(function(questionCard) {
+    
+            // Add descriptive answers (optional if empty)
+            descQuestions.forEach(questionCard => {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const textarea = document.querySelector(`textarea[name="question_${questionId}"]`);
-                if (textarea) {
-                    formData.append(`question_${questionId}`, textarea.value.trim());
-                }
+                const textarea = questionCard.querySelector('textarea');
+                formData.append(`question_${questionId}`, textarea.value.trim());
             });
-
-            // Submit via fetch
+    
             fetch('/student-feedback/submit/', {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'X-CSRFToken': csrfToken
-                }
+                headers: { 'X-CSRFToken': csrfToken }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    messageContainer.innerHTML =
-                        '<div class="message success">' +
-                        '✅ ' + data.message +
-                        '</div>';
-                    // Hide the form
+                    messageContainer.innerHTML = `<div class="message success">✅ ${data.message}</div>`;
                     document.getElementById('feedbackForm').style.display = 'none';
-
-                    // Show thank you message and redirect
-                    setTimeout(function() {
-                        window.location.href = '/student-feedback/teachers/';
-                    }, 3000);
+                    setTimeout(() => window.location.href = '/student-feedback/teachers/', 3000);
                 } else {
-                    messageContainer.innerHTML =
-                        '<div class="message error">' +
-                        '❌ ' + (data.error || 'An unknown error occurred.') +
-                        '</div>';
-                    // Re-enable submit button
+                    messageContainer.innerHTML = `<div class="message error">❌ ${data.error || 'An error occurred.'}</div>`;
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Submit Feedback';
-                    messageContainer.scrollIntoView({ behavior: 'smooth' });
                 }
             })
-            .catch(error => {
-                messageContainer.innerHTML =
-                    '<div class="message error">' +
-                    '❌ An error occurred. Please try again.' +
-                    '</div>';
-                // Re-enable submit button
+            .catch(() => {
+                messageContainer.innerHTML = `<div class="message error">❌ An error occurred. Please try again.</div>`;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Submit Feedback';
-                messageContainer.scrollIntoView({ behavior: 'smooth' });
             });
         });
     </script>
-</body>
-
-</html>
+    </body>
+    </html>

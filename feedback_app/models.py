@@ -127,9 +127,11 @@ class FeedbackQuestion(models.Model):
     q_desc = models.TextField()
     q_type = models.CharField(max_length=20)  # e.g., 'MCQ' or 'DESC'
     active = models.BooleanField(default=True)
+    is_required = models.BooleanField(default=False)  # NEW FIELD
 
     def __str__(self):
         return self.q_desc
+
 
 
 # -------------------

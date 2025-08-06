@@ -80,11 +80,11 @@
                             </div>
                             {% endfor %}
 
-                            {% if q.feedbackqoption_set.count > 4 %}
+                            {% comment %} {% if q.feedbackqoption_set.count > 4 %}
                             <div class="col-md-3">
                                 <span class="text-muted">... and {{ q.feedbackqoption_set.count|add:"-4" }} more</span>
                             </div>
-                            {% endif %}
+                            {% endif %} {% endcomment %}
                         </div>
                     </div>
                     {% elif q.q_type == 'DESC' %}

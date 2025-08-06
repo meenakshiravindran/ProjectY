@@ -13,73 +13,17 @@
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .feedback-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            gap: 40px;
-            align-items: flex-start;
+            max-width: 800px;
+            width: 100%;
         }
 
-        .left-section {
-            flex: 0 0 320px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .icon-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .user-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #6600cc, #8533ff);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(102, 0, 204, 0.4);
-        }
-
-        .user-icon::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 15px;
-            width: 10px;
-            height: 10px;
-            background-color: white;
-            border-radius: 50%;
-        }
-
-        .user-icon::after {
-            content: '';
-            position: absolute;
-            bottom: 8px;
-            left: 10px;
-            width: 20px;
-            height: 15px;
-            background-color: white;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .left-title {
-            font-size: 3rem;
-            font-weight: bold;
-            color: white;
-            line-height: 1.2;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .right-section {
-            flex: 1;
+        .form-section {
             background: rgba(255, 255, 255, 0.95);
             border: 2px solid rgba(102, 0, 204, 0.3);
             border-radius: 0;
@@ -322,19 +266,6 @@
         }
 
         @media (max-width: 768px) {
-            .feedback-container {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .left-section {
-                flex: none;
-            }
-
-            .left-title {
-                font-size: 2rem;
-            }
-
             .rating-container {
                 padding: 0 10px;
             }
@@ -343,25 +274,20 @@
                 font-size: 0.8rem;
                 max-width: 70px;
             }
+
+            .form-body {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="feedback-container">
-        <!-- Left Section -->
-        <div class="left-section">
-            <div class="icon-group">
-                <div class="user-icon"></div>
-                <div class="user-icon"></div>
-            </div>
-            <h1 class="left-title">Anonymous feedback form</h1>
-        </div>
-
-        <!-- Right Section -->
-        <div class="right-section">
+        <!-- Form Section -->
+        <div class="form-section">
             <div class="form-header">
-                <h2>Feedback Form</h2>
+                <h2>Anonymous Feedback Form</h2>
             </div>
 
             <div class="form-body">

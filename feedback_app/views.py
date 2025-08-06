@@ -439,7 +439,7 @@ def teacher_list(request):
 @login_required()
 def add_teacher(request):
     if request.method == 'POST':
-        form = TeacherForm(request.POST)
+        form = TeacherForm(request.POST,request.FILES)
         if form.is_valid():
             try:
                 # Save the form without committing to access the object
@@ -474,7 +474,7 @@ def edit_teacher(request, pk):
     user = teacher.user
 
     if request.method == "POST":
-        form = TeacherEditForm(request.POST, instance=teacher)  # Only TeacherEditForm (no password)
+        form = TeacherEditForm(request.POST,request.FILES, instance=teacher)  # Only TeacherEditForm (no password)
         if form.is_valid():
             form.save()
             messages.success(request, "Teacher updated successfully!")

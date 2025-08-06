@@ -27,7 +27,7 @@ class Role(models.Model):
 # -------------------
 class Programme(models.Model):
     pgm_id = models.AutoField(primary_key=True)
-    pgm_name = models.CharField(max_length=100)
+    pgm_name = models.CharField(max_length=200)
     dept = models.ForeignKey(Department, on_delete=models.CASCADE)
     level = models.CharField(max_length=50)
 
@@ -60,16 +60,17 @@ class Teacher(models.Model):
     gender = models.CharField(max_length=10)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     fb_active = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
-    def __str__(self):
-        return self.name
+    def _str_(self):
+        return self.name 
 
 # -------------------
 # Course
 # -------------------
 class Course(models.Model):
     course_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
     code = models.CharField(max_length=50)
     credit = models.IntegerField()
     dept = models.ForeignKey(Department, on_delete=models.CASCADE)

@@ -71,6 +71,10 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Teacher
 
+from django import forms
+from django.contrib.auth.models import User
+from .models import Teacher
+
 class TeacherForm(forms.ModelForm):
     username = forms.CharField(
         max_length=150,
@@ -84,7 +88,7 @@ class TeacherForm(forms.ModelForm):
 
     class Meta:
         model = Teacher
-        fields = ['name', 'dept', 'designation', 'gender', 'role', 'fb_active']  # ✅ Only model fields here
+        fields = ['name', 'dept', 'designation', 'gender', 'role', 'fb_active','profile_picture']  # ✅ Only model fields here
         labels = {
             'name': 'Teacher Name',
             'dept': 'Department',
@@ -92,6 +96,7 @@ class TeacherForm(forms.ModelForm):
             'gender': 'Gender',
             'role': 'Role',
             'fb_active': 'Feedback Active?',
+            'profile_picture': 'Profile Picture',   
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -100,6 +105,7 @@ class TeacherForm(forms.ModelForm):
             'gender': forms.RadioSelect(choices=GENDER_CHOICES),
             'role': forms.Select(attrs={'class': 'form-select'}),
             'fb_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
     def save(self, commit=True):
@@ -116,7 +122,7 @@ class TeacherForm(forms.ModelForm):
 class TeacherEditForm(forms.ModelForm):
     class Meta:
         model = Teacher
-        fields = ['name', 'dept', 'designation', 'gender', 'role', 'fb_active']
+        fields = ['name', 'dept', 'designation', 'gender', 'role', 'fb_active','profile_picture']
         labels = {
             'name': 'Teacher Name',
             'dept': 'Department',
@@ -124,6 +130,8 @@ class TeacherEditForm(forms.ModelForm):
             'gender': 'Gender',
             'role': 'Role',
             'fb_active': 'Feedback Active?',
+            'profile_picture': 'Profile Picture',
+            
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -132,8 +140,11 @@ class TeacherEditForm(forms.ModelForm):
             'gender': forms.RadioSelect(choices=GENDER_CHOICES),
             'role': forms.Select(attrs={'class': 'form-select'}),
             'fb_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }   
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            
+        }
 
+        
 from django import forms
 from .models import Department, Course, Batch, Teacher
 

@@ -8,7 +8,7 @@
             <h4 class="mb-0">{{ form.instance.pk|yesno:"Edit Teacher,Add Teacher" }}</h4>
         </div>
         <div class="card-body">
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <div class="mb-3">
@@ -36,6 +36,18 @@
                             </div>
                         {% endfor %}
                     </div>
+                </div>
+
+
+                <div class="mb-3">
+                    <label for="id_profile_picture" class="form-label">Profile Picture (optional):</label>
+                    {{ form.profile_picture }}
+                    
+                    {% if form.instance.profile_picture %}
+                        <div class="mt-2">
+                            <img src="{{ form.instance.profile_picture.url }}" height="100" class="img-thumbnail">
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="mb-3">
@@ -67,5 +79,3 @@
     </div>
 </div>
 {% endblock %}
-
-

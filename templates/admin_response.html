@@ -10,7 +10,200 @@
         padding: 20px;
         margin-bottom: 30px;
     }
+
+    /* Professional Summary Analysis Styles */
+    .question-summary-card {
+        border: 1px solid #e3e6f0;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        transition: all 0.3s;
+    }
+
+    .question-summary-card:hover {
+        box-shadow: 0 0.25rem 2rem 0 rgba(58, 59, 69, 0.2);
+    }
+
+    .question-header {
+        background: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+        padding: 1.25rem;
+    }
+
+    .question-type-badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 0.35rem;
+        font-weight: 600;
+    }
+
+    .mcq-badge {
+        background-color: #4e73df;
+        color: white;
+    }
+
+    .desc-badge {
+        background-color: #1cc88a;
+        color: white;
+    }
+
+    .response-count-badge {
+        background-color: #36b9cc;
+        color: white;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 0.35rem;
+        font-weight: 600;
+    }
+
+    /* Amazon-style horizontal bar graph */
+    .rating-breakdown {
+        padding: 1.5rem;
+    }
+
+    .rating-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        gap: 1rem;
+    }
+
+    .rating-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .rating-label {
+        font-weight: 500;
+        color: #5a5c69;
+        min-width: 80px;
+        text-align: right;
+        font-size: 0.9rem;
+    }
+
+    .rating-bar-container {
+        flex: 1;
+        height: 20px;
+        background-color: #f1f1f2;
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .rating-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 4px;
+        transition: width 0.6s ease-in-out;
+        position: relative;
+    }
+
+    .rating-bar.high-rating {
+        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .rating-bar.medium-rating {
+        background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .rating-bar.low-rating {
+        background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .rating-percentage {
+        font-weight: 600;
+        color: #5a5c69;
+        min-width: 45px;
+        text-align: left;
+        font-size: 0.9rem;
+    }
+
+    .rating-count {
+        font-weight: 500;
+        color: #858796;
+        min-width: 30px;
+        text-align: right;
+        font-size: 0.85rem;
+    }
+
+    /* Descriptive responses styling */
+    .desc-responses-container {
+        padding: 1.5rem;
+    }
+
+    .desc-response-item {
+        background: #f8f9fc;
+        border-left: 4px solid #4e73df;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        border-radius: 0 6px 6px 0;
+    }
+
+    .desc-response-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .desc-response-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        gap: 1rem;
+    }
+
+    .feedback-number {
+        background-color: #4e73df;
+        color: white;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+    }
+
+    .submission-date {
+        color: #858796;
+        font-size: 0.8rem;
+    }
+
+    .desc-response-text {
+        color: #5a5c69;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* No responses state */
+    .no-responses-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: #858796;
+    }
+
+    .no-responses-icon {
+        font-size: 3rem;
+        color: #dddfeb;
+        margin-bottom: 1rem;
+    }
+
+    /* Overall stats */
+    .summary-stats {
+        background: #f8f9fc;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .summary-stats h6 {
+        color: #5a5c69;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-stats .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #4e73df;
+    }
 </style>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -165,102 +358,79 @@
                             </div>
                         </div>
 
-                        <!-- Summary Analysis Tab -->
+                        <!-- Professional Summary Analysis Tab -->
                         <div class="tab-pane fade" id="summary" role="tabpanel">
                             <div class="mt-4">
-                                <h5 class="mb-3">📊 Question-wise Summary</h5>
+                                <h5 class="mb-4">📊 Question-wise Summary</h5>
+
                                 {% for item in questions_with_summary %}
-                                <div class="card mb-4">
-                                    <div class="card-header">
+                                <div class="question-summary-card mb-4">
+                                    <div class="question-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
-                                                <strong class="badge bg-{% if item.type == 'MCQ' %}primary{% else %}info{% endif %} me-2">
+                                                <span class="question-type-badge {% if item.type == 'MCQ' %}mcq-badge{% else %}desc-badge{% endif %}">
                                                     {{ item.type }} {{ forloop.counter }}
-                                                </strong>
+                                                </span>
+                                                <h6 class="mt-2 mb-0 fw-bold text-gray-800">{{ item.question.q_desc }}</h6>
                                             </div>
-                                            <small class="text-muted">{{ item.total_responses }} responses</small>
-                                        </div>
-                                        <div class="mt-2">
-                                            <strong>{{ item.question.q_desc }}</strong>
+                                            <div class="text-right">
+                                                <span class="response-count-badge">
+                                                    {{ item.total_responses }} response{{ item.total_responses|pluralize }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="card-body">
-
-                                        {% if item.type == 'MCQ' %}
-                                        {% if item.option_counts %}
-                                        <div class="row">
-                                            {% for option, count in item.option_counts.items %}
-                                            <div class="col-md-6 mb-3">
-                                                <div
-                                                    class="d-flex justify-content-between align-items-center p-3 border rounded">
-                                                    <span>{{ option }}</span>
-                                                    <div>
-                                                        <span class="badge bg-primary fs-6 me-2">{{ count }}</span>
-                                                        <small class="text-muted">
-                                                            ({% widthratio count item.total_responses 100 %}%)
-                                                        </small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                        {% else %}
-                                        <div class="alert alert-info">
-                                            <i class="fas fa-info-circle"></i> No responses yet for this question.
-                                        </div>
-                                        {% endif %}
-
-                                        {% elif item.type == 'DESC' %}
-                                        {% if item.responses %}
-                                        <div class="accordion" id="accordion{{ item.question.q_id }}">
-                                            <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#collapse{{ item.question.q_id }}">
-                                                        View All {{ item.total_responses }} Descriptive Responses
-                                                    </button>
-                                                </h2>
-                                                <div id="collapse{{ item.question.q_id }}"
-                                                    class="accordion-collapse collapse"
-                                                    data-bs-parent="#accordion{{ item.question.q_id }}">
-                                                    <div class="accordion-body">
-                                                        <div class="row">
-                                                            {% for response in item.responses %}
-                                                            <div class="col-12 mb-3">
-                                                                <div class="card bg-light">
-                                                                    <div class="card-body">
-                                                                        <div
-                                                                            class="d-flex justify-content-between align-items-start mb-2">
-                                                                            <span class="badge bg-primary">Feedback #{{response.feedback_number }}</span>
-                                                                            <small class="text-muted">
-                                                                                {{ response.submitted_at|date:"M d, Y
-                                                                                H:i" }}
-                                                                            </small>
-                                                                        </div>
-                                                                        <p class="mb-0">{{ response.text }}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            {% endfor %}
+                                    {% if item.type == 'MCQ' %}
+                                        {% if item.total_responses > 0 %}
+                                            <div class="rating-breakdown">
+                                                {% for option, count in item.option_counts.items %}
+                                                    {% widthratio count item.total_responses 100 as percentage %}
+                                                    <div class="rating-row">
+                                                        <div class="rating-label">{{ option }}</div>
+                                                        <div class="rating-bar-container">
+                                                            <div class="rating-bar {% if percentage >= 70 %}high-rating{% elif percentage >= 40 %}medium-rating{% else %}low-rating{% endif %}" 
+                                                                 style="width: {{ percentage }}%"></div>
                                                         </div>
+                                                        <div class="rating-count">{{ count }}</div>
+                                                        <div class="rating-percentage">{{ percentage }}%</div>
                                                     </div>
-                                                </div>
+                                                {% endfor %}
                                             </div>
-                                        </div>
                                         {% else %}
-                                        <div class="alert alert-info">
-                                            <i class="fas fa-info-circle"></i> No responses yet for this question.
-                                        </div>
+                                            <div class="no-responses-state">
+                                                <i class="fas fa-chart-bar no-responses-icon"></i>
+                                                <h6>No responses yet</h6>
+                                                <p class="mb-0">Students haven't responded to this question.</p>
+                                            </div>
                                         {% endif %}
+
+                                    {% elif item.type == 'DESC' %}
+                                        {% if item.responses %}
+                                            <div class="desc-responses-container">
+                                                {% for response in item.responses %}
+                                                    <div class="desc-response-item">
+                                                        <div class="desc-response-header">
+                                                            <span class="feedback-number">Feedback #{{ response.feedback_number }}</span>
+                                                            <span class="submission-date">{{ response.submitted_at|date:"M d, Y H:i" }}</span>
+                                                        </div>
+                                                        <p class="desc-response-text">{{ response.text }}</p>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="no-responses-state">
+                                                <i class="fas fa-comments no-responses-icon"></i>
+                                                <h6>No responses yet</h6>
+                                                <p class="mb-0">Students haven't responded to this question.</p>
+                                            </div>
                                         {% endif %}
-                                    </div>
+                                    {% endif %}
                                 </div>
                                 {% empty %}
                                 <div class="alert alert-warning text-center">
-                                    <h4>📝 No feedback responses yet</h4>
-                                    <p>Students haven't submitted any feedback responses yet.</p>
+                                    <h4>📝 No feedback questions available</h4>
+                                    <p>No questions have been set up for feedback yet.</p>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -271,4 +441,38 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Animate rating bars on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate rating bars
+        const ratingBars = document.querySelectorAll('.rating-bar');
+        ratingBars.forEach((bar, index) => {
+            const originalWidth = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = originalWidth;
+            }, 200 + (index * 100));
+        });
+    });
+
+    // Add tab switching animation
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function() {
+            if (this.getAttribute('data-bs-target') === '#summary') {
+                // Re-animate bars when summary tab is shown
+                setTimeout(() => {
+                    const ratingBars = document.querySelectorAll('.rating-bar');
+                    ratingBars.forEach((bar, index) => {
+                        const originalWidth = bar.style.width;
+                        bar.style.width = '0%';
+                        setTimeout(() => {
+                            bar.style.width = originalWidth;
+                        }, 100 + (index * 50));
+                    });
+                }, 100);
+            }
+        });
+    });
+</script>
 {% endblock %}

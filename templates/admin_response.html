@@ -387,7 +387,7 @@
                       <div class="col-md-6">
                         <label for="courseSelect" class="form-label">Select Course</label>
                         <select class="form-select" id="courseSelect" name="course" onchange="document.getElementById('filterForm').submit();">
-                          <option value="">-- Select Course --</option>
+                          <option value="">-- All Course --</option>
                           {% for course in user_courses %}
                             <option value="{{ course.course_id }}" {% if course.course_id == selected_course_id %}selected{% endif %}>{{ course.name }}</option>
                           {% endfor %}
@@ -397,14 +397,14 @@
                       <!-- Batch -->
                       <div class="col-md-6">
                         <label for="batchSelect" class="form-label">Select Batch</label>
-                        <select class="form-select" id="batchSelect" name="batch" onchange="document.getElementById('filterForm').submit();" {% if not selected_course_id %}disabled{% endif %}>
-                          <option value="">-- Select Batch --</option>
-                          {% for batch in filtered_batches %}
-                            <option value="{{ batch.batch_id }}" {% if batch.batch_id|stringformat:"s" == selected_batch_id|stringformat:"s" %}selected{% endif %}>
-                              {{ batch.acad_year }} - {{ batch.part }}
-                            </option>
-                          {% endfor %}
-                        </select>
+                        <select class="form-select" id="batchSelect" name="batch" onchange="document.getElementById('filterForm').submit();" >
+                            <option value="">-- All Batch --</option>
+                            {% for batch in filtered_batches %}
+                              <option value="{{ batch.batch_id }}" {% if batch.batch_id|stringformat:"s" == selected_batch_id|stringformat:"s" %}selected{% endif %}>
+                                {{ batch.acad_year }} - {{ batch.part }}
+                              </option>
+                            {% endfor %}
+                          </select>
                       </div>
                     </form>
                 {% endif %}

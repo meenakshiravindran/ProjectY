@@ -246,12 +246,12 @@
             <div class="card dashboard-card success h-100">
                 <div class="card-body d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h6 class="card-title mb-1">Total Responses</h6>
-                        <h3 class="mb-0">{{ teacher_responses_count }}</h3>
-                        <small class="opacity-75">Feedback received</small>
+                        <h6 class="card-title mb-1">Total Questions</h6>
+                        <h3 class="mb-0">{{ total_questions_count }}</h3>
+                        <small class="opacity-75">Questions asked</small>
                     </div>
                     <div class="stats-icon">
-                        <i class="fas fa-comment-dots"></i>
+                        <i class="fas fa-question-circle"></i>
                     </div>
                 </div>
             </div>
@@ -289,6 +289,7 @@
     </div>
 
     <!-- Teacher Charts -->
+     <!-- Teacher Charts -->
     <div class="row mb-4">
         <div class="col-lg-6 mb-3">
             <div class="chart-container">
@@ -314,7 +315,6 @@
             </div>
         </div>
     </div>
-
     <!-- My Courses Table -->
     <div class="chart-container">
         <h5 class="mb-3">
@@ -329,7 +329,7 @@
                         <th>Course Name</th>
                         <th>Batch</th>
                         <th>Department</th>
-                        <th>Responses</th>
+                        <th>Students Reached</th>
                         <th>Avg Rating</th>
                     </tr>
                 </thead>
@@ -340,7 +340,7 @@
                         <td>{{ course.course.name }}</td>
                         <td>{{ course.batch.acad_year }} - {{ course.batch.part }}</td>
                         <td><span class="department-badge">{{ course.department.dept_name }}</span></td>
-                        <td>{{ course.response_count }}</td>
+                        <td>{{ course.students_reached }}</td>
                         <td>
                             {% if course.avg_rating %}
                                 <span class="text-warning">
@@ -529,14 +529,14 @@
         options: chartOptions
     });
 
-    // Course Performance Chart
+    // Course Performance Chart - Updated to show student counts
     createChartIfExists('coursePerformanceChart', {
         type: 'bar',
         data: {
             labels: {{ course_labels|safe }},
             datasets: [{
-                label: 'Average Rating',
-                data: {{ course_ratings|safe }},
+                label: 'Students Reached',
+                data: {{ course_student_counts|safe }},
                 backgroundColor: '#667eea',
                 borderRadius: 8
             }]
@@ -546,9 +546,18 @@
             scales: {
                 y: { 
                     beginAtZero: true,
-                    max: 5,
                     ticks: {
                         stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                ...chartOptions.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Students Reached: ${context.parsed.y}`;
+                        }
                     }
                 }
             }

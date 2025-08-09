@@ -78,7 +78,7 @@ def get_admin_dashboard_data():
         gender_counts = [0, 0]
     
     # Rating distribution (assuming you have rating options)
-    rating_options = ['Excellent', 'Very Good', 'Good', 'Average', 'Poor']
+    rating_options = ['Excellent', 'Good', 'Average', 'Poor','Very Poor']
     rating_counts = []
     
     for option in rating_options:
@@ -146,7 +146,6 @@ def get_admin_dashboard_data():
     }
 from collections import defaultdict
 import json
-
 def get_teacher_dashboard_data(teacher):
     """Generate comprehensive teacher dashboard data for a given teacher."""
 
@@ -165,10 +164,10 @@ def get_teacher_dashboard_data(teacher):
     # Calculate average rating
     rating_map = {
         'excellent': 5,
-        'very good': 4,
-        'good': 3,
-        'average': 2,
-        'poor': 1
+        'good': 4,
+        'average': 3,
+        'poor': 2,
+        'very poor': 1,
     }
 
     rating_responses = StudentFeedbackResponse.objects.filter(
@@ -192,7 +191,8 @@ def get_teacher_dashboard_data(teacher):
                 break
 
     teacher_avg_rating = total_rating / rating_count if rating_count > 0 else 0
-
+    total_questions_count = FeedbackQuestion.objects.filter(active=True).count() 
+    
     # Unique students count
     unique_students = StudentFeedbackResponse.objects.filter(
         teacher_batch__teacher=teacher
@@ -202,10 +202,10 @@ def get_teacher_dashboard_data(teacher):
     teacher_feedback_labels = list(feedback_distribution.keys())
     teacher_feedback_counts = list(feedback_distribution.values())
 
-    # ✅ NEW: Batch-wise performance instead of course-wise
+    # ✅ UPDATED: Batch-wise performance with student count instead of response count
     batch_performance = {}  # Dictionary to group by batch
     batch_labels = []
-    batch_ratings = []
+    batch_ratings = []  # Changed from batch_ratings to batch_student_counts
 
     # Group responses by batch
     for batch in teacher_batches:
@@ -215,17 +215,22 @@ def get_teacher_dashboard_data(teacher):
             batch_performance[batch_key] = {
                 'total_rating': 0,
                 'rating_count': 0,
-                'response_count': 0
+                'unique_students': 0
             }
         
-        # Get responses for this specific teacher-batch combination
+        # Get unique students for this specific teacher-batch combination
+        unique_students_for_batch = StudentFeedbackResponse.objects.filter(
+            teacher_batch=batch
+        ).values('session_id').distinct().count()
+        
+        batch_performance[batch_key]['unique_students'] = unique_students_for_batch
+        
+        # Still calculate ratings for other purposes
         batch_responses = StudentFeedbackResponse.objects.filter(
             teacher_batch=batch
         ).select_related('selected_option')
 
         for response in batch_responses:
-            batch_performance[batch_key]['response_count'] += 1
-            
             if response.selected_option and response.selected_option.answer:
                 option_text = response.selected_option.answer.lower()
                 for key, value in rating_map.items():
@@ -240,10 +245,16 @@ def get_teacher_dashboard_data(teacher):
         avg_rating = data['total_rating'] / data['rating_count'] if data['rating_count'] > 0 else 0
         batch_ratings.append(round(avg_rating, 1))
 
-    # Course-wise performance for the table (keeping original structure)
+    # ✅ UPDATED: Course-wise performance for the table with student count
     course_performance = []
 
     for batch in teacher_batches:
+        # Get unique students for this specific teacher-batch combination
+        unique_students_for_course = StudentFeedbackResponse.objects.filter(
+            teacher_batch=batch
+        ).values('session_id').distinct().count()
+        
+        # Still calculate average rating for display
         course_responses = StudentFeedbackResponse.objects.filter(
             teacher_batch=batch
         ).select_related('selected_option')
@@ -253,7 +264,6 @@ def get_teacher_dashboard_data(teacher):
         response_count = 0
 
         for response in course_responses:
-            response_count += 1
             if response.selected_option and response.selected_option.answer:
                 option_text = response.selected_option.answer.lower()
                 for key, value in rating_map.items():
@@ -268,22 +278,23 @@ def get_teacher_dashboard_data(teacher):
             'course': batch.course,
             'batch': batch.batch,
             'department': batch.department,
-            'response_count': response_count,
+            'students_reached': unique_students_for_course,  # Changed from response_count
             'avg_rating': course_avg
         }
         course_performance.append(course_info)
 
     return {
         'teacher_courses_count': teacher_courses_count,
+        'total_questions_count': total_questions_count,
         'teacher_responses_count': teacher_responses_count,
         'teacher_avg_rating': teacher_avg_rating,
         'unique_students': unique_students,
         'teacher_feedback_labels': json.dumps(teacher_feedback_labels),
         'teacher_feedback_counts': json.dumps(teacher_feedback_counts),
-        # ✅ NEW: Batch-wise data for the chart
-        'course_labels': json.dumps(batch_labels),  # Actually batch labels now
-        'course_ratings': json.dumps(batch_ratings),  # Actually batch ratings now
-        'teacher_courses': course_performance,  # Keep for the table
+        # ✅ UPDATED: Batch-wise data now shows student counts
+        'course_labels': json.dumps(batch_labels),  
+        'course_student_counts': json.dumps(batch_ratings),  # Changed from course_ratings
+        'teacher_courses': course_performance,  # Updated structure
     }
 
 def get_rating_value(option_text):
@@ -291,10 +302,10 @@ def get_rating_value(option_text):
     option_lower = option_text.lower()
     rating_map = {
         'excellent': 5,
-        'very good': 4,
-        'good': 3,
-        'average': 2,
-        'poor': 1
+        'good': 4,
+        'average': 3,
+        'poor': 2,
+        'very poor': 1,
     }
     
     for key, value in rating_map.items():
@@ -1018,7 +1029,7 @@ def submit_student_feedback(request):
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
+@login_required
 def admin_student_feedback_responses(request):
     user = request.user
 
@@ -1064,13 +1075,19 @@ def admin_student_feedback_responses(request):
             return redirect('login')
 
         # Courses assigned to the logged-in teacher
+        # Get all courses assigned to teacher first
         user_courses = Course.objects.filter(teacherbatch__teacher=teacher).distinct()
+        course_ids = list(user_courses.values_list('course_id', flat=True))  # always defined
 
-        # Batches for selected course only
         if selected_course_id:
             filtered_batches = Batch.objects.filter(course_id=selected_course_id)
         else:
-            filtered_batches = Batch.objects.none()
+            filtered_batches = Batch.objects.filter(course_id__in=course_ids)
+
+        print("User Courses IDs:", course_ids)
+        print("Filtered Batches IDs:", list(filtered_batches.values_list('batch_id', flat=True)))
+
+
 
     elif is_admin:
         # Admin courses filtered by teacher or department

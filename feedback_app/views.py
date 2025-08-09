@@ -5,6 +5,7 @@ from .models import Programme, Department,TeacherBatch
 from django.shortcuts import get_object_or_404
 from .forms import ProgrammeForm,TeacherBatchAssignForm
 
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -57,7 +58,7 @@ def get_admin_dashboard_data():
     """Generate comprehensive admin dashboard data"""
     
     # Basic statistics
-    total_responses = StudentFeedbackResponse.objects.count()
+    total_students_submitted = StudentFeedbackResponse.objects.values('session_id').distinct().count()
     active_teachers = Teacher.objects.filter(fb_active=True).count()
     total_courses = Course.objects.count()
     total_departments = Department.objects.count()
@@ -129,7 +130,7 @@ def get_admin_dashboard_data():
     ).order_by('-created_date_time')[:10]
     
     return {
-        'total_responses': total_responses,
+        'total_feedback_submissions': total_students_submitted,
         'active_teachers': active_teachers,
         'total_courses': total_courses,
         'total_departments': total_departments,

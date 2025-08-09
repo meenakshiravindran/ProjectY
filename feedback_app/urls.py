@@ -20,6 +20,7 @@ urlpatterns = [
 
     path('batch/edit/<int:batch_id>/', views.edit_batch, name='edit_batch'),
     path('batch/delete/<int:batch_id>/', views.delete_batch, name='delete_batch'),
+    path('batch/<int:batch_id>/toggle-activation/', views.toggle_batch_activation, name='toggle_batch_activation'),
 
     path('teachers/', views.teacher_list, name='teacher_list'),
     path('teachers/add/', views.add_teacher, name='add_teacher'),
@@ -28,6 +29,8 @@ urlpatterns = [
     path('teacher/<int:user_id>/change-password/', views.change_teacher_password, name='change_teacher_password'),
     path('teacher/<int:teacher_id>/reset-password/', views.reset_teacher_password, name='reset_teacher_password'),
     path('teachers/<int:teacher_id>/toggle_feedback/', views.toggle_feedback_status, name='toggle_feedback'),
+    path('teachers/<int:teacher_id>/courses/', views.teacher_courses, name='teacher_courses'),
+    path('teacher-course/<int:teacher_batch_id>/toggle-feedback/', views.toggle_teacher_course_feedback, name='toggle_teacher_course_feedback'),
 
 
     path('teacher-batch/', views.teacher_batch_list, name='teacher_batch_list'),
@@ -43,16 +46,17 @@ urlpatterns = [
     path('questions/<str:q_id>/options/', views.add_options, name='add_options'),
     path('options/<int:option_id>/delete/', views.delete_option, name='delete_option'),
 
-     path('student-feedback/', views.student_feedback_form, name='student_feedback_form'),
-    path('student-feedback/submit/', views.submit_student_feedback, name='submit_student_feedback'),
+    path('student-feedback/', views.student_feedback_form, name='student_feedback_form'),
     
     # Admin Feedback Response URLs (login required)
     path('feedback-admin/student-responses/', views.admin_student_feedback_responses, name='admin_student_feedback_responses'),
-    path('student-feedback/teachers/', views.select_teacher_for_feedback, name='select_teacher_for_feedback'),
     path('student-feedback/teacher/<int:teacher_id>/', views.student_feedback_form_by_teacher, name='student_feedback_form_by_teacher'),
+    path('student-feedback/teacher-course/<int:teacher_batch_id>/', views.student_feedback_form_by_teacher_course, name='student_feedback_form_by_teacher_course'),
+    path('student-feedback/teachers/', views.select_teacher_for_feedback, name='select_teacher_for_feedback'),
+    path('student-feedback/submit/', views.submit_student_feedback, name='submit_student_feedback'),
 
     path('ajax/load-courses-teachers/', views.get_courses_teachers_by_department, name='load_courses_teachers'),
     path('ajax/load-batches/', views.load_batches, name='load_batches'),
-
+    
 ]
 

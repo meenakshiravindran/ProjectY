@@ -121,69 +121,88 @@
             </div>
 
                 <div class="table-responsive w-75 mt-3">
-                    <table class="table table-sm table-bordered">
-                        <thead class="table-secondary">
-                            <tr>
-                                <th>SI.No</th>
-                                <th>Academic Year</th>
-                                <th>Part</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for batch in course.batch_set.all %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td>{{ batch.acad_year }}</td>
-                                <td>{{ batch.part }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editBatchModal-{{ batch.batch_id }}">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                                    <form action="{% url 'delete_batch' batch.batch_id %}" method="post" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" title="Delete" class="btn btn-sm btn-danger" onclick="return confirm('Delete this batch?');">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <div class="modal fade" id="editBatchModal-{{ batch.batch_id }}" tabindex="-1" aria-labelledby="editBatchLabel-{{ batch.batch_id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content shadow">
-                                        <div class="modal-header bg-dark text-white">
-                                            <h5 class="modal-title">Edit Batch - {{ course.name }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <form method="post" action="{% url 'edit_batch' batch.batch_id %}">
-                                            {% csrf_token %}
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Academic Year:</label>
-                                                    <input type="text" class="form-control text-start" name="acad_year" value="{{ batch.acad_year }}">
-                                                </div>
-                                            
-                                                 <div class="mb-3">
-                                                    <label class="form-label">Part:</label>
-                                                        {{ form.part.label_tag }}
-                                                        {{ form.part }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="submit" class="btn btn-success">Update</button>
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            </div>
-                                        </form>
-                                    </div>
+    <table class="table table-sm table-bordered">
+        <thead class="table-secondary">
+            <tr>
+                <th>SI.No</th>
+                <th>Academic Year</th>
+                <th>Part</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for batch in course.batch_set.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ batch.acad_year }}</td>
+                <td>{{ batch.part }}</td>
+
+                <!-- STATUS column: posts to toggle view -->
+                <td>
+                    <form method="post" action="{% url 'toggle_batch_activation' batch.batch_id %}" style="display:inline;" onsubmit="event.stopPropagation();">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm {% if batch.is_active %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                            {% if batch.is_active %}Active{% else %}Inactive{% endif %}
+                        </button>
+                    </form>
+                </td>
+
+                <!-- ACTIONS column -->
+                <td>
+                    <!-- Edit button (opens modal) -->
+                    <button class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editBatchModal-{{ batch.batch_id }}" onclick="event.stopPropagation()">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+
+                    <!-- Delete form -->
+                    <form action="{% url 'delete_batch' batch.batch_id %}" method="post" style="display:inline;" onsubmit="event.stopPropagation(); return confirm('Delete this batch?');">
+                        {% csrf_token %}
+                        <button type="submit" title="Delete" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+
+            <!-- Keep your modal for edit here (OK to keep as-is) -->
+            <div class="modal fade" id="editBatchModal-{{ batch.batch_id }}" tabindex="-1" aria-labelledby="editBatchLabel-{{ batch.batch_id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content shadow">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title">Edit Batch - {{ course.name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="post" action="{% url 'edit_batch' batch.batch_id %}">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Academic Year:</label>
+                                    <input type="text" class="form-control text-start" name="acad_year" value="{{ batch.acad_year }}">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Part:</label>
+                                    {{ form.part.label_tag }}
+                                    {{ form.part }}
                                 </div>
                             </div>
-                            {% empty %}
-                            <tr><td colspan="2" class="text-center">No batches found.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">Update</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+            </div>
+
+            {% empty %}
+            <tr><td colspan="5" class="text-center">No batches found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 
                 <div class="modal fade" id="addBatchModal-{{ course.course_id }}" tabindex="-1" aria-labelledby="addBatchLabel-{{ course.course_id }}" aria-hidden="true">
                     <div class="modal-dialog">
@@ -213,11 +232,20 @@
 </table>
 
 <script>
+    // Toggle batch row display when clicking a course-row
     document.querySelectorAll('.course-row').forEach(row => {
         row.addEventListener('click', () => {
             const courseId = row.dataset.courseId;
             const batchRow = document.getElementById('batch-' + courseId);
             batchRow.style.display = batchRow.style.display === 'none' ? 'table-row' : 'none';
+        });
+    });
+
+    // Prevent button/form clicks in the row from toggling the batch row
+    // (this is defensive — we also added inline stopPropagation on the buttons/forms)
+    document.querySelectorAll('.course-row button, .course-row form').forEach(el => {
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
         });
     });
 </script>

@@ -43,10 +43,10 @@ class Batch(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
     acad_year = models.CharField(max_length=10)
     part = models.CharField(max_length=20)
+    is_active = models.BooleanField(default=False)  # NEW FIELD for batch activation
 
     def __str__(self):
         return f"{self.acad_year} - {self.part}"
-
 
 # -------------------
 # Teacher
@@ -90,9 +90,13 @@ class TeacherBatch(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    is_active_for_feedback = models.BooleanField(default=False)  # NEW FIELD for teacher-course feedback activation
 
     def __str__(self):
         return f"{self.teacher.name} - {self.batch.acad_year} - {self.course.code} - {self.department.dept_name}"
+
+    class Meta:
+        unique_together = ('teacher', 'batch', 'course', 'department') 
 
 
 
@@ -165,7 +169,6 @@ class TeacherFeedbackResponse(models.Model):
 
 # Add this new model to your existing models.py
 
-
 class StudentFeedbackResponse(models.Model):
     response_id = models.AutoField(primary_key=True)
     question = models.ForeignKey(FeedbackQuestion, on_delete=models.CASCADE)
@@ -174,9 +177,13 @@ class StudentFeedbackResponse(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     session_id = models.CharField(max_length=100)  # To group responses from same student
     feedback_number = models.IntegerField(default=1)  # Sequential numbering for anonymous feedback
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # UPDATED FIELDS
+    teacher_batch = models.ForeignKey(TeacherBatch, on_delete=models.CASCADE, null=True, blank=True)  # NEW FIELD - links to specific teacher-course
     
     def __str__(self):
+        if self.teacher_batch:
+            return f"Feedback #{self.feedback_number} - {self.teacher_batch.teacher.name} ({self.teacher_batch.course.code}) - {self.question.q_desc[:30]}..."
         return f"Feedback #{self.feedback_number} - {self.question.q_desc[:30]}..."
     
     class Meta:

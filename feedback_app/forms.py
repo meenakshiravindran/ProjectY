@@ -21,8 +21,8 @@ DESIGNATION_CHOICES = [
     ('Guest Lecturer', 'Guest Lecturer'),
 ]
 PART_CHOICES = [
-    ('Part A', 'Part A'),
-    ('Part B', 'Part B'),
+    ('A', 'A'),
+    ('B', 'B'),
 ]
 
 class ProgrammeForm(forms.ModelForm):

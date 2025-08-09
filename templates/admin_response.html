@@ -313,6 +313,28 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <div class="col-md-4">
+                            <label for="teacherSelect" class="form-label">Select Course</label>
+                            <select class="form-select" id="courseSelect" name="course" onchange="document.getElementById('filterForm').submit();">
+                                <option value="">-- All Courses --</option>
+                                {% for course in courses %}
+                                <option value="{{ course.course_id }}" {% if course.course_id == selected_course_id %}selected{% endif %}>{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="batchSelect" class="form-label">Select Batch</label>
+                            <select class="form-select" id="batchSelect" name="batch" onchange="document.getElementById('filterForm').submit();">
+                                <option value="">-- All Batches --</option>
+                                {% for batch in batches %}
+                                <option value="{{ batch.batch_id }}" {% if batch.batch_id|stringformat:"s" == selected_batch_id|stringformat:"s" %}selected{% endif %}>
+                                    {{ batch.acad_year }} - {{ batch.part }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        
                     </form>
                     {% endif %}
 

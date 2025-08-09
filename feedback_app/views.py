@@ -324,12 +324,18 @@ def course_list(request):
         courses = Course.objects.all().prefetch_related('batch_set')
 
     batch_form = BatchForm()
+    edit_forms={}
+     
+    for course in courses:
+        for batch in course.batch_set.all():
+            edit_forms[batch.batch_id]=BatchForm(instance=batch)
 
     return render(request, 'course_list.html', {
         'courses': courses,
         'departments': departments,
         'selected_dept': selected_dept,
-        'batch_form': batch_form
+        'batch_form': batch_form,
+        'edit_forms':edit_forms,
     })
 
 @login_required
@@ -976,54 +982,58 @@ def admin_student_feedback_responses(request):
     user = request.user
     is_admin = user.is_staff
 
-    # 🔹 Global stats
+    # Global stats
     total_questions = FeedbackQuestion.objects.filter(active=True).count()
     all_responses = StudentFeedbackResponse.objects.all()
     total_feedback_submissions = all_responses.values('session_id').distinct().count()
 
-    # 🔹 Filters - Updated to include course
+    # Filters
     selected_dept_id = request.GET.get('department')
     selected_teacher_id = request.GET.get('teacher')
     selected_course_id = request.GET.get('course')
+    selected_batch_id = request.GET.get('batch')
 
+    # Dropdown data
     departments = Department.objects.all()
     teachers = Teacher.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Teacher.objects.all()
     courses = Course.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Course.objects.all()
-    
-    # 🔹 Filtered responses
+    batches = Batch.objects.filter(course_id=selected_course_id) if selected_course_id else Batch.objects.all()
+
+    # Base queryset
     responses = StudentFeedbackResponse.objects.none()
 
     if is_admin:
-        if selected_course_id and selected_teacher_id:
-            # Filter by specific teacher-course combination
-            responses = StudentFeedbackResponse.objects.filter(
-                teacher_batch__teacher_id=selected_teacher_id,
-                teacher_batch__course_id=selected_course_id
-            )
-        elif selected_teacher_id:
-            # Filter by teacher (all their courses)
-            responses = StudentFeedbackResponse.objects.filter(teacher_batch__teacher_id=selected_teacher_id)
-        elif selected_dept_id:
-            responses = StudentFeedbackResponse.objects.filter(teacher_batch__department_id=selected_dept_id)
-        else:
-            responses = all_responses
+        responses = all_responses
+
+        if selected_dept_id:
+            responses = responses.filter(teacher_batch__department_id=selected_dept_id)
+        if selected_teacher_id:
+            responses = responses.filter(teacher_batch__teacher_id=selected_teacher_id)
+        if selected_course_id:
+            responses = responses.filter(teacher_batch__course_id=selected_course_id)
+        if selected_batch_id:
+            responses = responses.filter(teacher_batch__batch_id=selected_batch_id)
+
     else:
         try:
             teacher = Teacher.objects.get(user=user)
-            # Teacher sees responses for all their courses
             responses = StudentFeedbackResponse.objects.filter(teacher_batch__teacher=teacher)
+
+            if selected_course_id:
+                responses = responses.filter(teacher_batch__course_id=selected_course_id)
+            if selected_batch_id:
+                responses = responses.filter(teacher_batch__batch_id=selected_batch_id)
         except Teacher.DoesNotExist:
             messages.error(request, "Teacher not found.")
             return redirect('login')
 
-    # 🔹 Group by session for display
+    # Group responses by session
     grouped = {}
     for response in responses:
         grouped.setdefault(response.session_id, []).append(response)
 
     feedback_sessions = []
     for i, (session_id, session_responses) in enumerate(grouped.items(), start=1):
-        # Get course info from the first response
         first_response = session_responses[0]
         course_info = None
         if first_response.teacher_batch:
@@ -1032,16 +1042,16 @@ def admin_student_feedback_responses(request):
                 'course_name': first_response.teacher_batch.course.name,
                 'batch': f"{first_response.teacher_batch.batch.acad_year} - {first_response.teacher_batch.batch.part}"
             }
-        
+
         feedback_sessions.append({
             'feedback_number': i,
-            'submitted_at': session_responses[0].submitted_at,
+            'submitted_at': first_response.submitted_at,
             'total_responses': len(session_responses),
             'responses': session_responses,
             'course_info': course_info,
         })
 
-    # 🔹 Summary tab (same logic as before, but now course-specific)
+    # Summary
     questions_with_responses = []
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
 
@@ -1054,8 +1064,7 @@ def admin_student_feedback_responses(request):
 
             for r in q_responses:
                 if r.selected_option:
-                    key = r.selected_option.answer
-                    option_counts[key] += 1
+                    option_counts[r.selected_option.answer] += 1
 
             questions_with_responses.append({
                 'question': question,
@@ -1078,25 +1087,23 @@ def admin_student_feedback_responses(request):
                 'total_responses': q_responses.count()
             })
 
-    context = {
+    return render(request, 'admin_response.html', {
         'departments': departments,
         'teachers': teachers,
         'courses': courses,
+        'batches': batches,
         'selected_dept_id': int(selected_dept_id) if selected_dept_id else None,
         'selected_teacher_id': int(selected_teacher_id) if selected_teacher_id else None,
         'selected_course_id': int(selected_course_id) if selected_course_id else None,
+        'selected_batch_id': int(selected_batch_id) if selected_batch_id else None,
 
-        # Cards - global
         'total_questions': total_questions,
         'total_feedback_submissions': total_feedback_submissions,
         'latest_submission': all_responses.order_by('-submitted_at').first().submitted_at if all_responses.exists() else "--",
 
-        # Tabs - filtered
         'feedback_sessions': feedback_sessions,
         'questions_with_summary': questions_with_responses,
-    }
-
-    return render(request, 'admin_response.html', context)
+    })
 
 def select_teacher_for_feedback(request):
     print("🔥🔥🔥 VIEW IS BEING CALLED 🔥🔥🔥")

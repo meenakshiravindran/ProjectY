@@ -10,3 +10,8 @@ def get_item(dictionary, key):
 @register.filter
 def dict_key(dictionary, key):
     return dictionary[key]
+
+
+@register.filter
+def dict_get(d, key):
+    return d.get(key)

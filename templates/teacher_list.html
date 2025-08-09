@@ -95,7 +95,6 @@
             <th>Designation</th>
             <th>Gender</th>
             <th>Role</th>
-            <th>Feedback Active</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -108,17 +107,6 @@
             <td>{{ teacher.designation }}</td>
             <td>{{ teacher.gender }}</td>
             <td>{{ teacher.role.role_name }}</td>
-            
-            <!-- ✅ Clean Feedback Active Toggle (Only One) -->
-            <td>
-                <form action="{% url 'toggle_feedback' teacher.teacher_id %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <div class="form-check form-switch d-flex justify-content-center">
-                        <input class="form-check-input" type="checkbox" onchange="this.form.submit()" {% if teacher.fb_active %}checked{% endif %}>
-                    </div>
-                </form>
-            </td>
-            
             <!-- ✅ Clean Actions Column -->
             <td>
                 <!-- Manage Courses -->

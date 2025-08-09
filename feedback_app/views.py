@@ -978,6 +978,7 @@ def submit_student_feedback(request):
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 @login_required
+@login_required
 def admin_student_feedback_responses(request):
     user = request.user
     is_admin = user.is_staff
@@ -996,7 +997,16 @@ def admin_student_feedback_responses(request):
     # Dropdown data
     departments = Department.objects.all()
     teachers = Teacher.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Teacher.objects.all()
-    courses = Course.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Course.objects.all()
+
+    # ✅ Courses now filter by teacher first, then department
+    if selected_teacher_id:
+        courses = Course.objects.filter(teacherbatch__teacher_id=selected_teacher_id).distinct()
+    elif selected_dept_id:
+        courses = Course.objects.filter(dept_id=selected_dept_id)
+    else:
+        courses = Course.objects.all()
+
+    # Batches filter by course
     batches = Batch.objects.filter(course_id=selected_course_id) if selected_course_id else Batch.objects.all()
 
     # Base queryset

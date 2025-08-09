@@ -294,7 +294,7 @@
                     </div>
                     {% if user.is_staff %}
                     <form method="get" id="filterForm" class="row g-3 mb-4">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="departmentSelect" class="form-label">Select Department</label>
                             <select class="form-select" id="departmentSelect" name="department" onchange="document.getElementById('filterForm').submit();">
                                 <option value="">-- All Departments --</option>
@@ -304,7 +304,7 @@
                             </select>
                         </div>
                     
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="teacherSelect" class="form-label">Select Teacher</label>
                             <select class="form-select" id="teacherSelect" name="teacher" onchange="document.getElementById('filterForm').submit();">
                                 <option value="">-- All Teachers --</option>
@@ -313,8 +313,9 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label for="teacherSelect" class="form-label">Select Course</label>
+                    
+                        <div class="col-md-3">
+                            <label for="courseSelect" class="form-label">Select Course</label>
                             <select class="form-select" id="courseSelect" name="course" onchange="document.getElementById('filterForm').submit();">
                                 <option value="">-- All Courses --</option>
                                 {% for course in courses %}
@@ -322,7 +323,8 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
+                    
+                        <div class="col-md-3">
                             <label for="batchSelect" class="form-label">Select Batch</label>
                             <select class="form-select" id="batchSelect" name="batch" onchange="document.getElementById('filterForm').submit();">
                                 <option value="">-- All Batches --</option>
@@ -333,10 +335,9 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        
-                        
                     </form>
                     {% endif %}
+                    
 
                     <!-- Navigation Tabs -->
                     <ul class="nav nav-tabs" id="responseTab" role="tablist">

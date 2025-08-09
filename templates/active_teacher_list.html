@@ -109,48 +109,46 @@
     {% if teacher_courses %}
         <div class="row">
             {% for teacher, courses in teacher_courses.items %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card glass-card h-100 p-4">
-                    <!-- Teacher Info -->
-                    <div class="text-center mb-3">
-                        <div class="icon-circle mx-auto overflow-hidden" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #fff;">
-                            {% if teacher.profile_picture %}
-                                <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.name }}'s photo" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <i class="bi bi-person-fill" style="font-size: 2rem; line-height: 80px;"></i>
-                            {% endif %}
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">{{ teacher.name }}</h5>
-                            <p class="card-text mb-2"><strong>Department:</strong> {{ teacher.dept.dept_name }}</p>
-                            <p class="card-text mb-3"><strong>Designation:</strong> {{ teacher.designation }}</p>
-                        </div>
+    {% for course_assignment in courses %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card glass-card h-100 p-4 d-flex flex-column">
+                
+                <!-- Teacher Info -->
+                <div class="text-center mb-3">
+                    <div class="icon-circle mx-auto overflow-hidden" 
+                         style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #fff;">
+                        {% if teacher.profile_picture %}
+                            <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.name }}'s photo" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <i class="bi bi-person-fill" style="font-size: 2rem; line-height: 80px;"></i>
+                        {% endif %}
+                    </div>
+                    <h5 class="card-title mt-2">{{ teacher.name }}</h5>
+                    <p class="card-text mb-1"><strong>Department:</strong> {{ teacher.dept.dept_name }}</p>
+                    <p class="card-text"><strong>Designation:</strong> {{ teacher.designation }}</p>
+                </div>
+
+                <!-- Course Info -->
+                <div class="mt-auto text-center">
+                    <div class="course-code">{{ course_assignment.course.code }}</div>
+                    <div style="font-size: 0.9rem;">{{ course_assignment.course.name }}</div>
+                    <div class="batch-info">
+                        <i class="bi bi-calendar3"></i> {{ course_assignment.batch.acad_year }} - {{ course_assignment.batch.part }}
                     </div>
 
-                    <!-- Active Courses -->
-                    <div class="course-list">
-                        <h6 class="mb-3 text-center"><i class="bi bi-book"></i> Active Courses</h6>
-                        {% for course_assignment in courses %}
-                            <div class="course-item">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <div class="course-code">{{ course_assignment.course.code }}</div>
-                                        <div style="font-size: 0.9rem;">{{ course_assignment.course.name }}</div>
-                                        <div class="batch-info">
-                                            <i class="bi bi-calendar3"></i> {{ course_assignment.batch.acad_year }} - {{ course_assignment.batch.part }}
-                                        </div>
-                                    </div>
-                                    <a href="{% url 'student_feedback_form_by_teacher_course' course_assignment.teacher_batch_id %}" 
-                                       class="glass-button">
-                                        Give Feedback
-                                    </a>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
+                    <!-- Feedback Button -->
+                    <a href="{% url 'student_feedback_form_by_teacher_course' course_assignment.teacher_batch_id %}" 
+                       class="glass-button mt-3 d-inline-block">
+                        Give Feedback
+                    </a>
                 </div>
             </div>
-            {% endfor %}
+        </div>
+    {% endfor %}
+{% endfor %}
+
+
         </div>
     {% else %}
         <div class="row justify-content-center">
@@ -173,33 +171,6 @@
     {% endif %}
 
     <!-- Instructions Card -->
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> How Feedback System Works</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center mb-3">
-                            <i class="bi bi-1-circle-fill" style="font-size: 2rem; color: #8e2de2;"></i>
-                            <h6 class="mt-2">Course-Specific Feedback</h6>
-                            <p class="text-muted small">Give feedback for specific courses, not just teachers</p>
-                        </div>
-                        <div class="col-md-4 text-center mb-3">
-                            <i class="bi bi-2-circle-fill" style="font-size: 2rem; color: #8e2de2;"></i>
-                            <h6 class="mt-2">Better Analytics</h6>
-                            <p class="text-muted small">Teachers can see feedback for individual courses they teach</p>
-                        </div>
-                        <div class="col-md-4 text-center mb-3">
-                            <i class="bi bi-3-circle-fill" style="font-size: 2rem; color: #8e2de2;"></i>
-                            <h6 class="mt-2">Anonymous & Secure</h6>
-                            <p class="text-muted small">Your feedback is anonymous and helps improve teaching</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+   
 </div>
 {% endblock %}

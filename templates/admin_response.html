@@ -229,7 +229,48 @@
     .glass-button i {
         transition: transform 0.3s ease;
     }
-    
+    /* Container for filters */
+.filter-container {
+  background: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgb(0 0 0 / 0.1);
+  margin-bottom: 2rem;
+  border: 1px solid #ddd;
+}
+
+/* Spacing for each filter group */
+.filter-container .col-md-3,
+.filter-container .col-md-6 {
+  margin-bottom: 1rem;
+}
+
+/* Uniform select height and padding */
+.filter-container select.form-select {
+  height: 42px;
+  padding: 0.375rem 0.75rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1.5px solid #ced4da;
+  box-shadow: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Focus style for select */
+.filter-container select.form-select:focus {
+  border-color: #8e2de2;
+  box-shadow: 0 0 8px rgba(142, 45, 226, 0.5);
+  outline: none;
+}
+
+/* Label styling */
+.filter-container label.form-label {
+  font-weight: 600;
+  color: #4e4e4e;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
 </style>
 
 <div class="container-fluid">
@@ -293,50 +334,83 @@
                         {% endif %}
                     </div>
                     {% if user.is_staff %}
-                    <form method="get" id="filterForm" class="row g-3 mb-4">
-                        <div class="col-md-3">
-                            <label for="departmentSelect" class="form-label">Select Department</label>
-                            <select class="form-select" id="departmentSelect" name="department" onchange="document.getElementById('filterForm').submit();">
-                                <option value="">-- All Departments --</option>
-                                {% for dept in departments %}
-                                <option value="{{ dept.dept_id }}" {% if dept.dept_id == selected_dept_id %}selected{% endif %}>{{ dept.dept_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    
-                        <div class="col-md-3">
-                            <label for="teacherSelect" class="form-label">Select Teacher</label>
-                            <select class="form-select" id="teacherSelect" name="teacher" onchange="document.getElementById('filterForm').submit();">
-                                <option value="">-- All Teachers --</option>
-                                {% for teacher in teachers %}
-                                <option value="{{ teacher.teacher_id }}" {% if teacher.teacher_id == selected_teacher_id %}selected{% endif %}>{{ teacher.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    
-                        <div class="col-md-3">
-                            <label for="courseSelect" class="form-label">Select Course</label>
-                            <select class="form-select" id="courseSelect" name="course" onchange="document.getElementById('filterForm').submit();">
-                                <option value="">-- All Courses --</option>
-                                {% for course in courses %}
-                                <option value="{{ course.course_id }}" {% if course.course_id == selected_course_id %}selected{% endif %}>{{ course.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    
-                        <div class="col-md-3">
-                            <label for="batchSelect" class="form-label">Select Batch</label>
-                            <select class="form-select" id="batchSelect" name="batch" onchange="document.getElementById('filterForm').submit();">
-                                <option value="">-- All Batches --</option>
-                                {% for batch in batches %}
-                                <option value="{{ batch.batch_id }}" {% if batch.batch_id|stringformat:"s" == selected_batch_id|stringformat:"s" %}selected{% endif %}>
-                                    {{ batch.acad_year }} - {{ batch.part }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <!-- Admin: show all 4 filters -->
+                    <form method="get" id="filterForm" class="row g-3 filter-container">
+                      <!-- Department -->
+                      <div class="col-md-3">
+                        <label for="departmentSelect" class="form-label">Select Department</label>
+                        <select class="form-select" id="departmentSelect" name="department" onchange="document.getElementById('filterForm').submit();">
+                          <option value="">-- All Departments --</option>
+                          {% for dept in departments %}
+                            <option value="{{ dept.dept_id }}" {% if dept.dept_id == selected_dept_id %}selected{% endif %}>{{ dept.dept_name }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <!-- Teacher -->
+                      <div class="col-md-3">
+                        <label for="teacherSelect" class="form-label">Select Teacher</label>
+                        <select class="form-select" id="teacherSelect" name="teacher" onchange="document.getElementById('filterForm').submit();">
+                          <option value="">-- All Teachers --</option>
+                          {% for teacher in teachers %}
+                            <option value="{{ teacher.teacher_id }}" {% if teacher.teacher_id == selected_teacher_id %}selected{% endif %}>{{ teacher.name }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <!-- Course -->
+                      <div class="col-md-3">
+                        <label for="courseSelect" class="form-label">Select Course</label>
+                        <select class="form-select" id="courseSelect" name="course" onchange="document.getElementById('filterForm').submit();">
+                          <option value="">-- All Courses --</option>
+                          {% for course in courses %}
+                            <option value="{{ course.course_id }}" {% if course.course_id == selected_course_id %}selected{% endif %}>{{ course.name }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <!-- Batch -->
+                      <div class="col-md-3">
+                        <label for="batchSelect" class="form-label">Select Batch</label>
+                        <select class="form-select" id="batchSelect" name="batch" onchange="document.getElementById('filterForm').submit();">
+                          <option value="">-- All Batches --</option>
+                          {% for batch in batches %}
+                            <option value="{{ batch.batch_id }}" {% if batch.batch_id|stringformat:"s" == selected_batch_id|stringformat:"s" %}selected{% endif %}>
+                              {{ batch.acad_year }} - {{ batch.part }}
+                            </option>
+                          {% endfor %}
+                        </select>
+                      </div>
                     </form>
-                    {% endif %}
+                
+                {% elif is_hod or is_teacher %}
+                    <!-- HOD or Teacher: show only Course and Batch -->
+                    <form method="get" id="filterForm" class="row g-3 filter-container">
+                      <!-- Course -->
+                      <div class="col-md-6">
+                        <label for="courseSelect" class="form-label">Select Course</label>
+                        <select class="form-select" id="courseSelect" name="course" onchange="document.getElementById('filterForm').submit();">
+                          <option value="">-- Select Course --</option>
+                          {% for course in user_courses %}
+                            <option value="{{ course.course_id }}" {% if course.course_id == selected_course_id %}selected{% endif %}>{{ course.name }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                
+                      <!-- Batch -->
+                      <div class="col-md-6">
+                        <label for="batchSelect" class="form-label">Select Batch</label>
+                        <select class="form-select" id="batchSelect" name="batch" onchange="document.getElementById('filterForm').submit();" {% if not selected_course_id %}disabled{% endif %}>
+                          <option value="">-- Select Batch --</option>
+                          {% for batch in filtered_batches %}
+                            <option value="{{ batch.batch_id }}" {% if batch.batch_id|stringformat:"s" == selected_batch_id|stringformat:"s" %}selected{% endif %}>
+                              {{ batch.acad_year }} - {{ batch.part }}
+                            </option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </form>
+                {% endif %}
+                
+                  
+                
                     
 
                     <!-- Navigation Tabs -->

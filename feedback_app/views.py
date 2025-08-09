@@ -144,7 +144,6 @@ def get_admin_dashboard_data():
         'department_counts': json.dumps(department_counts),
         'recent_activities': recent_activities,
     }
-
 from collections import defaultdict
 import json
 
@@ -203,10 +202,46 @@ def get_teacher_dashboard_data(teacher):
     teacher_feedback_labels = list(feedback_distribution.keys())
     teacher_feedback_counts = list(feedback_distribution.values())
 
-    # Course-wise performance
+    # ✅ NEW: Batch-wise performance instead of course-wise
+    batch_performance = {}  # Dictionary to group by batch
+    batch_labels = []
+    batch_ratings = []
+
+    # Group responses by batch
+    for batch in teacher_batches:
+        batch_key = f"{batch.batch.acad_year} {batch.batch.part}"
+        
+        if batch_key not in batch_performance:
+            batch_performance[batch_key] = {
+                'total_rating': 0,
+                'rating_count': 0,
+                'response_count': 0
+            }
+        
+        # Get responses for this specific teacher-batch combination
+        batch_responses = StudentFeedbackResponse.objects.filter(
+            teacher_batch=batch
+        ).select_related('selected_option')
+
+        for response in batch_responses:
+            batch_performance[batch_key]['response_count'] += 1
+            
+            if response.selected_option and response.selected_option.answer:
+                option_text = response.selected_option.answer.lower()
+                for key, value in rating_map.items():
+                    if key in option_text:
+                        batch_performance[batch_key]['total_rating'] += value
+                        batch_performance[batch_key]['rating_count'] += 1
+                        break
+
+    # Convert batch performance to lists for chart
+    for batch_key, data in batch_performance.items():
+        batch_labels.append(batch_key)
+        avg_rating = data['total_rating'] / data['rating_count'] if data['rating_count'] > 0 else 0
+        batch_ratings.append(round(avg_rating, 1))
+
+    # Course-wise performance for the table (keeping original structure)
     course_performance = []
-    course_labels = []
-    course_ratings = []
 
     for batch in teacher_batches:
         course_responses = StudentFeedbackResponse.objects.filter(
@@ -238,9 +273,6 @@ def get_teacher_dashboard_data(teacher):
         }
         course_performance.append(course_info)
 
-        course_labels.append(batch.course.code)
-        course_ratings.append(course_avg)
-
     return {
         'teacher_courses_count': teacher_courses_count,
         'teacher_responses_count': teacher_responses_count,
@@ -248,9 +280,10 @@ def get_teacher_dashboard_data(teacher):
         'unique_students': unique_students,
         'teacher_feedback_labels': json.dumps(teacher_feedback_labels),
         'teacher_feedback_counts': json.dumps(teacher_feedback_counts),
-        'course_labels': json.dumps(course_labels),
-        'course_ratings': json.dumps(course_ratings),
-        'teacher_courses': course_performance,
+        # ✅ NEW: Batch-wise data for the chart
+        'course_labels': json.dumps(batch_labels),  # Actually batch labels now
+        'course_ratings': json.dumps(batch_ratings),  # Actually batch ratings now
+        'teacher_courses': course_performance,  # Keep for the table
     }
 
 def get_rating_value(option_text):
@@ -986,41 +1019,75 @@ def submit_student_feedback(request):
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-@login_required
 def admin_student_feedback_responses(request):
     user = request.user
-    is_admin = user.is_staff
 
-    # Global stats
+    # Default role flags
+    is_admin = user.is_staff
+    is_hod = False
+    is_teacher = False
+    teacher = None
+
+    # Detect role via Teacher → Role relation
+    try:
+        teacher = Teacher.objects.get(user=user)
+        role_name = teacher.role.role_name.lower()
+        is_hod = (role_name == "hod")
+        is_teacher = (role_name == "teacher")
+    except Teacher.DoesNotExist:
+        teacher = None
+        role_name = None
+
     total_questions = FeedbackQuestion.objects.filter(active=True).count()
     all_responses = StudentFeedbackResponse.objects.all()
 
-    # Filters (read early!)
+    # Filters from GET params
     selected_dept_id = request.GET.get('department')
     selected_teacher_id = request.GET.get('teacher')
     selected_course_id = request.GET.get('course')
     selected_batch_id = request.GET.get('batch')
 
-    # Dropdown data
-    departments = Department.objects.all()
-    teachers = Teacher.objects.filter(dept_id=selected_dept_id) if selected_dept_id else Teacher.objects.all()
+    # For admin dropdowns
+    departments = Department.objects.all() if is_admin else None
+    teachers = Teacher.objects.filter(dept_id=selected_dept_id) if (is_admin and selected_dept_id) else (Teacher.objects.all() if is_admin else None)
 
-    # Courses: prefer filtering by teacher, otherwise by department, else all
-    if selected_teacher_id:
-        courses = Course.objects.filter(teacherbatch__teacher_id=selected_teacher_id).distinct()
-    elif selected_dept_id:
-        courses = Course.objects.filter(dept_id=selected_dept_id)
-    else:
-        courses = Course.objects.all()
+    # Initialize course and batch vars
+    courses = None
+    batches = None
+    user_courses = None
+    filtered_batches = None
 
-    # Batches filter by course (or all)
-    batches = Batch.objects.filter(course_id=selected_course_id) if selected_course_id else Batch.objects.all()
+    # Role-based filtering for courses & batches
+    if is_hod or is_teacher:
+        if not teacher:
+            messages.error(request, "Teacher profile not found.")
+            return redirect('login')
 
-    # Build the responses queryset (always define responses)
+        # Courses assigned to the logged-in teacher
+        user_courses = Course.objects.filter(teacherbatch__teacher=teacher).distinct()
+
+        # Batches for selected course only
+        if selected_course_id:
+            filtered_batches = Batch.objects.filter(course_id=selected_course_id)
+        else:
+            filtered_batches = Batch.objects.none()
+
+    elif is_admin:
+        # Admin courses filtered by teacher or department
+        if selected_teacher_id:
+            courses = Course.objects.filter(teacherbatch__teacher_id=selected_teacher_id).distinct()
+        elif selected_dept_id:
+            courses = Course.objects.filter(dept_id=selected_dept_id)
+        else:
+            courses = Course.objects.all()
+
+        # Batches filtered by selected course
+        batches = Batch.objects.filter(course_id=selected_course_id) if selected_course_id else Batch.objects.all()
+
+    # Build the filtered responses queryset
     responses = StudentFeedbackResponse.objects.none()
 
     if is_admin:
-        # Admin sees all responses but apply filters if given
         responses = all_responses
         if selected_dept_id:
             responses = responses.filter(teacher_batch__department_id=selected_dept_id)
@@ -1030,12 +1097,10 @@ def admin_student_feedback_responses(request):
             responses = responses.filter(teacher_batch__course_id=selected_course_id)
         if selected_batch_id:
             responses = responses.filter(teacher_batch__batch_id=selected_batch_id)
-    else:
-        # Teacher view: restrict to that teacher's responses
-        try:
-            teacher = Teacher.objects.get(user=user)
-        except Teacher.DoesNotExist:
-            messages.error(request, "Teacher not found.")
+
+    elif is_hod or is_teacher:
+        if not teacher:
+            messages.error(request, "Teacher profile not found.")
             return redirect('login')
 
         responses = StudentFeedbackResponse.objects.filter(teacher_batch__teacher=teacher)
@@ -1044,16 +1109,15 @@ def admin_student_feedback_responses(request):
         if selected_batch_id:
             responses = responses.filter(teacher_batch__batch_id=selected_batch_id)
 
-    # ---------- Now that `responses` is final, compute stats ----------
+    # Stats calculations
     total_feedback_submissions = responses.values('session_id').distinct().count()
     total_responses_overall = responses.count()
-    total_sessions = total_feedback_submissions
-    avg_responses_per_student = round((total_responses_overall / total_sessions), 2) if total_sessions else 0
+    avg_responses_per_student = round((total_responses_overall / total_feedback_submissions), 2) if total_feedback_submissions else 0
 
     latest_submission_obj = responses.order_by('-submitted_at').first()
     latest_submission = latest_submission_obj.submitted_at if latest_submission_obj else "--"
 
-    # Group responses by session_id (ordered by submitted_at for determinism)
+    # Group responses by session_id
     grouped = {}
     for r in responses.order_by('submitted_at'):
         grouped.setdefault(r.session_id, []).append(r)
@@ -1078,7 +1142,7 @@ def admin_student_feedback_responses(request):
             'course_info': course_info,
         })
 
-    # Summary per question
+    # Prepare question summaries
     questions_with_responses = []
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
 
@@ -1115,12 +1179,14 @@ def admin_student_feedback_responses(request):
                 'total_responses': q_responses.count()
             })
 
-    # Render
     return render(request, 'admin_response.html', {
         'departments': departments,
         'teachers': teachers,
         'courses': courses,
         'batches': batches,
+        'user_courses': user_courses,
+        'filtered_batches': filtered_batches,
+
         'selected_dept_id': int(selected_dept_id) if selected_dept_id else None,
         'selected_teacher_id': int(selected_teacher_id) if selected_teacher_id else None,
         'selected_course_id': int(selected_course_id) if selected_course_id else None,
@@ -1133,7 +1199,10 @@ def admin_student_feedback_responses(request):
 
         'feedback_sessions': feedback_sessions,
         'questions_with_summary': questions_with_responses,
+
         'is_admin': is_admin,
+        'is_hod': is_hod,
+        'is_teacher': is_teacher,
     })
     
 

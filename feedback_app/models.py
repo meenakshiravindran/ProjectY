@@ -62,7 +62,7 @@ class Teacher(models.Model):
     fb_active = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
-    def _str_(self):
+    def __str__(self):
         return self.name 
 
 # -------------------

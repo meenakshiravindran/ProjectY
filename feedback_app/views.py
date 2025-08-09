@@ -631,27 +631,29 @@ def assign_teacher_batch(request):
         form = TeacherBatchAssignForm()
 
     return render(request, 'add_teacher_batch.html', {'form': form})
-
 @login_required
 def edit_teacher_batch_group(request, batch_id, course_id, dept_id):
     batch_obj = get_object_or_404(Batch, batch_id=batch_id)
     course_obj = get_object_or_404(Course, course_id=course_id)
     dept_obj = get_object_or_404(Department, dept_id=dept_id)
 
+    # Get current teacher assignments for this batch-course-department
     assignments = TeacherBatch.objects.filter(
         batch=batch_obj,
         course=course_obj,
         department=dept_obj,
     )
 
-    assigned_teachers = [a.teacher.teacher_id for a in assignments]
-
+    # Pass model instances instead of IDs to preserve display labels
+    assigned_teachers = [a.teacher for a in assignments]
 
     if request.method == 'POST':
         form = TeacherBatchAssignForm(request.POST)
         if form.is_valid():
+            # Remove old assignments
             assignments.delete()
 
+            # Add updated teachers
             teachers = form.cleaned_data['teachers']
             for teacher in teachers:
                 TeacherBatch.objects.create(
@@ -662,6 +664,7 @@ def edit_teacher_batch_group(request, batch_id, course_id, dept_id):
                 )
             return redirect('teacher_batch_list')
     else:
+        # Pre-fill the form with the existing assignments
         form = TeacherBatchAssignForm(initial={
             'batch': batch_obj,
             'course': course_obj,
@@ -669,8 +672,10 @@ def edit_teacher_batch_group(request, batch_id, course_id, dept_id):
             'teachers': assigned_teachers
         })
 
-    return render(request, 'add_teacher_batch.html', {'form': form, 'edit_mode': True})
-
+    return render(request, 'add_teacher_batch.html', {
+        'form': form,
+        'edit_mode': True
+    })
 
 # ✅ View 4: Delete an Assignment
 @login_required

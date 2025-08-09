@@ -163,15 +163,15 @@ class TeacherBatchAssignForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     course = forms.ModelChoiceField(
-        queryset=Course.objects.none(),  # initially empty
+        queryset=Course.objects.none(),
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     batch = forms.ModelChoiceField(
-        queryset=Batch.objects.none(),  # initially empty
+        queryset=Batch.objects.none(),
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     teachers = forms.ModelMultipleChoiceField(
-        queryset=Teacher.objects.none(),  # initially empty
+        queryset=Teacher.objects.none(),
         widget=forms.CheckboxSelectMultiple()
     )
 
@@ -188,8 +188,12 @@ class TeacherBatchAssignForm(forms.Form):
 
         elif 'department' in self.initial:
             dept = self.initial['department']
-            self.fields['course'].queryset = Course.objects.filter(dept=dept)
-            self.fields['teachers'].queryset = Teacher.objects.filter(dept=dept)
+            if isinstance(dept, Department):
+                dept_id = dept.pk
+            else:
+                dept_id = dept
+            self.fields['course'].queryset = Course.objects.filter(dept_id=dept_id)
+            self.fields['teachers'].queryset = Teacher.objects.filter(dept_id=dept_id)
 
         if 'course' in self.data:
             try:
@@ -197,6 +201,14 @@ class TeacherBatchAssignForm(forms.Form):
                 self.fields['batch'].queryset = Batch.objects.filter(course_id=course_id)
             except (ValueError, TypeError):
                 pass
+        elif 'course' in self.initial:
+            course = self.initial['course']
+            if isinstance(course, Course):
+                course_id = course.pk
+            else:
+                course_id = course
+            self.fields['batch'].queryset = Batch.objects.filter(course_id=course_id)
+
 
 
 from django import forms

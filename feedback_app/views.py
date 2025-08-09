@@ -144,29 +144,25 @@ def get_admin_dashboard_data():
         'recent_activities': recent_activities,
     }
 
+from collections import defaultdict
+import json
+
 def get_teacher_dashboard_data(teacher):
-    """Generate comprehensive teacher dashboard data"""
-    
-    # Teacher's courses
+    """Generate comprehensive teacher dashboard data for a given teacher."""
+
+    # All TeacherBatch entries for this teacher
     teacher_batches = TeacherBatch.objects.filter(teacher=teacher).select_related(
         'course', 'batch', 'department'
     )
-    
+
     teacher_courses_count = teacher_batches.count()
-    
-    # Teacher's responses count
+
+    # Total feedback responses for this teacher
     teacher_responses_count = StudentFeedbackResponse.objects.filter(
-        teacher=teacher
+        teacher_batch__teacher=teacher
     ).count()
-    
-    # Calculate average rating for this teacher
-    # This assumes you have a rating system - adjust based on your actual implementation
-    rating_responses = StudentFeedbackResponse.objects.filter(
-        teacher=teacher,
-        selected_option__isnull=False
-    ).select_related('selected_option')
-    
-    # Map rating options to numeric values (adjust based on your system)
+
+    # Calculate average rating
     rating_map = {
         'excellent': 5,
         'very good': 4,
@@ -174,12 +170,19 @@ def get_teacher_dashboard_data(teacher):
         'average': 2,
         'poor': 1
     }
-    
+
+    rating_responses = StudentFeedbackResponse.objects.filter(
+        teacher_batch__teacher=teacher,
+        selected_option__isnull=False
+    ).select_related('selected_option')
+
     total_rating = 0
     rating_count = 0
     feedback_distribution = defaultdict(int)
-    
+
     for response in rating_responses:
+        if not response.selected_option or not response.selected_option.answer:
+            continue
         option_text = response.selected_option.answer.lower()
         for key, value in rating_map.items():
             if key in option_text:
@@ -187,46 +190,44 @@ def get_teacher_dashboard_data(teacher):
                 rating_count += 1
                 feedback_distribution[response.selected_option.answer] += 1
                 break
-    
+
     teacher_avg_rating = total_rating / rating_count if rating_count > 0 else 0
-    
-    # Unique students (based on session_id)
+
+    # Unique students count
     unique_students = StudentFeedbackResponse.objects.filter(
-        teacher=teacher
+        teacher_batch__teacher=teacher
     ).values('session_id').distinct().count()
-    
-    # Feedback distribution for charts
+
+    # Prepare chart data for teacher feedback distribution
     teacher_feedback_labels = list(feedback_distribution.keys())
     teacher_feedback_counts = list(feedback_distribution.values())
-    
+
     # Course-wise performance
     course_performance = []
     course_labels = []
     course_ratings = []
-    
+
     for batch in teacher_batches:
         course_responses = StudentFeedbackResponse.objects.filter(
-            teacher=teacher,
-            # You might need to add a way to link responses to specific courses
+            teacher_batch=batch
         ).select_related('selected_option')
-        
-        # Calculate average for this course
+
         course_total = 0
         course_count = 0
         response_count = 0
-        
+
         for response in course_responses:
             response_count += 1
-            if response.selected_option:
+            if response.selected_option and response.selected_option.answer:
                 option_text = response.selected_option.answer.lower()
                 for key, value in rating_map.items():
                     if key in option_text:
                         course_total += value
                         course_count += 1
                         break
-        
+
         course_avg = course_total / course_count if course_count > 0 else 0
-        
+
         course_info = {
             'course': batch.course,
             'batch': batch.batch,
@@ -235,11 +236,10 @@ def get_teacher_dashboard_data(teacher):
             'avg_rating': course_avg
         }
         course_performance.append(course_info)
-        
-        # For chart
+
         course_labels.append(batch.course.code)
         course_ratings.append(course_avg)
-    
+
     return {
         'teacher_courses_count': teacher_courses_count,
         'teacher_responses_count': teacher_responses_count,
@@ -252,7 +252,6 @@ def get_teacher_dashboard_data(teacher):
         'teacher_courses': course_performance,
     }
 
-# Optional: Helper function to get rating value from option text
 def get_rating_value(option_text):
     """Convert option text to numeric rating"""
     option_lower = option_text.lower()
@@ -953,7 +952,8 @@ def submit_student_feedback(request):
                     selected_option=response_data.get('selected_option'),
                     response_text=response_data.get('response_text'),
                     session_id=session_id,
-                    feedback_number=feedback_number,# Keep for backward compatibility
+                    feedback_number=feedback_number,
+# Keep for backward compatibility
                     teacher_batch=teacher_batch  # NEW: Link to specific teacher-course
                 )
 

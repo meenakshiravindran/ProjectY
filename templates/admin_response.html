@@ -202,6 +202,34 @@
         font-weight: 700;
         color: #4e73df;
     }
+    .glass-button {
+        background: white;
+        color: #8e2de2;
+        border: 2px solid #8e2de2;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .glass-button:hover {
+        background: #8e2de2;
+        color: white;
+        border-color: #8e2de2;
+        box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1), 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .glass-button i {
+        transition: transform 0.3s ease;
+    }
+    
 </style>
 
 <div class="container-fluid">
@@ -358,11 +386,17 @@
                             </div>
                         </div>
 
-                        <!-- Professional Summary Analysis Tab -->
                         <div class="tab-pane fade" id="summary" role="tabpanel">
                             <div class="mt-4">
-                                <h5 class="mb-4">📊 Question-wise Summary</h5>
-
+                                <div class="d-flex justify-content-end mb-3">
+                                    <button id="toggleAllBtn" class="glass-button">
+                                        <i class="fas fa-compress"></i> Collapse All
+                                    </button>
+                                </div>
+                                
+                        
+                                <h5 class="mb-4">📊 QUESTION-WISE SUMMARY</h5>
+                        
                                 {% for item in questions_with_summary %}
                                 <div class="question-summary-card mb-4">
                                     <div class="question-header" style="cursor: pointer;" onclick="toggleSummaryContent({{ forloop.counter }})">
@@ -380,8 +414,9 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div class="summary-content" id="summaryContent-{{ forloop.counter }}" style="display: none;">
+                        
+                                    <!-- Initially visible -->
+                                    <div class="summary-content" id="summaryContent-{{ forloop.counter }}">
                                         {% if item.type == 'MCQ' %}
                                             {% if item.total_responses > 0 %}
                                                 <div class="rating-breakdown">
@@ -391,9 +426,8 @@
                                                             <div class="rating-label">{{ option }}</div>
                                                             <div class="rating-bar-container">
                                                                 <div class="rating-bar {% if percentage >= 70 %}high-rating{% elif percentage >= 40 %}medium-rating{% else %}low-rating{% endif %}" 
-                                                                style="width: 0%" data-width="{{ percentage }}%">
-                                                           </div>
-                                                           
+                                                                style="width: {{ percentage }}%" data-width="{{ percentage }}%">
+                                                                </div>
                                                             </div>
                                                             <div class="rating-count">{{ count }}</div>
                                                             <div class="rating-percentage">{{ percentage }}%</div>
@@ -438,7 +472,7 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    </div>
+                        
                 </div>
             </div>
         </div>
@@ -448,54 +482,28 @@
 <script>
     function toggleSummaryContent(id) {
         const content = document.getElementById(`summaryContent-${id}`);
-        if (content.style.display === 'none') {
-            content.style.display = 'block';
-    
-            // Animate only the bars inside this summary block
-            const ratingBars = content.querySelectorAll('.rating-bar');
-            ratingBars.forEach((bar, index) => {
-                const finalWidth = bar.dataset.width;  // ← get actual width
-                bar.style.width = '0%';
-                setTimeout(() => {
-                    bar.style.width = finalWidth;
-                }, 100 + (index * 50));
-            });
-        } else {
-            content.style.display = 'none';
-        }
+        content.style.display = (content.style.display === 'none') ? 'block' : 'none';
     }
-    
 
-    // Animate rating bars on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate rating bars
-        const ratingBars = document.querySelectorAll('.rating-bar');
-        ratingBars.forEach((bar, index) => {
-            const originalWidth = bar.style.width;
-            bar.style.width = '0%';
-            setTimeout(() => {
-                bar.style.width = originalWidth;
-            }, 200 + (index * 100));
-        });
-    });
+    // Toggle all with single button
+    const toggleBtn = document.getElementById('toggleAllBtn');
+    let allOpen = true; // initial state: all are open
 
-    // Add tab switching animation
-    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function() {
-            if (this.getAttribute('data-bs-target') === '#summary') {
-                // Re-animate bars when summary tab is shown
-                setTimeout(() => {
-                    const ratingBars = document.querySelectorAll('.rating-bar');
-                    ratingBars.forEach((bar, index) => {
-                        const originalWidth = bar.style.width;
-                        bar.style.width = '0%';
-                        setTimeout(() => {
-                            bar.style.width = originalWidth;
-                        }, 100 + (index * 50));
-                    });
-                }, 100);
-            }
-        });
+    toggleBtn.addEventListener('click', function () {
+        const sections = document.querySelectorAll('.summary-content');
+        
+        if (allOpen) {
+            // Collapse all
+            sections.forEach(sec => sec.style.display = 'none');
+            toggleBtn.innerHTML = '<i class="fas fa-expand"></i> Expand All';
+        } else {
+            // Expand all
+            sections.forEach(sec => sec.style.display = 'block');
+            toggleBtn.innerHTML = '<i class="fas fa-compress"></i> Collapse All';
+        }
+
+        allOpen = !allOpen; // flip state
     });
 </script>
+
 {% endblock %}

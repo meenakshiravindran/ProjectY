@@ -313,7 +313,6 @@
                         </div>
                     </div>
                 
-                
                 {% endif %}
 
                 <div id="message-container"></div>
@@ -372,12 +371,13 @@
 
     <script>
         document.querySelectorAll('.rating-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('click', function() {
-                const question = this.getAttribute('data-question');
-                document.querySelectorAll([data-question="${question}"]).forEach(cb => cb.classList.remove('checked'));
-                this.classList.add('checked');
-            });
-        });
+    checkbox.addEventListener('click', function() {
+        const question = this.getAttribute('data-question');
+        document.querySelectorAll(`[data-question="${question}"]`)
+            .forEach(cb => cb.classList.remove('checked'));
+        this.classList.add('checked');
+    });
+});
 
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -390,7 +390,7 @@
             const mcqQuestions = document.querySelectorAll('[data-question-type="MCQ"]');
             mcqQuestions.forEach((questionCard, index) => {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const checked = document.querySelector([data-question="question_${questionId}"].checked);
+                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`)
                 if (!checked) {
                     unansweredQuestions.push(Question ${index + 1} (Multiple Choice));
                 }
@@ -428,7 +428,8 @@
 
             mcqQuestions.forEach(questionCard => {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const checked = document.querySelector([data-question="question_${questionId}"].checked);
+                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
+
                 if (checked) {
                     formData.append(question_${questionId}, checked.getAttribute('data-value'));
                 }

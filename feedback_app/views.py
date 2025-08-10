@@ -916,11 +916,6 @@ def student_feedback_form(request):
     teacher_id = request.GET.get('teacher_id')
     teacher = get_object_or_404(Teacher, teacher_id=teacher_id)
 
-    # Get TeacherBatch record for this teacher (with course & batch info)
-    teacher_batch = TeacherBatch.objects.filter(
-        teacher=teacher
-    ).select_related('course', 'batch').first()  # pick first match
-
     # Get only active questions
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
 
@@ -944,7 +939,6 @@ def student_feedback_form(request):
 
     context = {
         'teacher': teacher,
-        'teacher_batch': teacher_batch,  # ✅ pass this to template
         'mcq_questions': mcq_questions,
         'desc_questions': desc_questions,
         'session_id': request.session['student_feedback_session'],

@@ -294,6 +294,14 @@
                         {% endif %}
                         <div style="margin-top: 15px;">
                     <p><strong> <span class="teacher-badge">{{ teacher.name }}</span></p>
+                    {% if teacher_batch %}
+    <p class="mb-1"><small>
+        <strong>Course:</strong> {{ teacher_batch.course.course_code }}: {{ teacher_batch.course.course_name }}
+    </small></p>
+    <p class="mb-1"><small>
+        <strong>Batch:</strong> {{ teacher_batch.batch.batch_name }}
+    </small></p>
+{% endif %}
                     <p class="mb-1"><small>Your feedback is valuable and completely anonymous. Please answer all questions honestly.</small></p>
                     <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
                 </div>

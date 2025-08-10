@@ -146,6 +146,7 @@ def get_admin_dashboard_data():
     }
 from collections import defaultdict
 import json
+
 def get_teacher_dashboard_data(teacher):
     """Generate comprehensive teacher dashboard data for a given teacher."""
 
@@ -239,8 +240,16 @@ def get_teacher_dashboard_data(teacher):
                         batch_performance[batch_key]['rating_count'] += 1
                         break
 
-    # Convert batch performance to lists for chart
-    for batch_key, data in batch_performance.items():
+    # ✅ NEW: Sort batch performance by year and part before converting to lists
+    def sort_batch_key(item):
+        batch_key = item[0]  # The batch key like "2022 A"
+        year, part = batch_key.split()
+        return (int(year), part)  # Sort by year first, then by part (A, B, etc.)
+
+    sorted_batch_performance = sorted(batch_performance.items(), key=sort_batch_key)
+
+    # Convert sorted batch performance to lists for chart
+    for batch_key, data in sorted_batch_performance:
         batch_labels.append(batch_key)
         avg_rating = data['total_rating'] / data['rating_count'] if data['rating_count'] > 0 else 0
         batch_ratings.append(round(avg_rating, 1))
@@ -291,7 +300,7 @@ def get_teacher_dashboard_data(teacher):
         'unique_students': unique_students,
         'teacher_feedback_labels': json.dumps(teacher_feedback_labels),
         'teacher_feedback_counts': json.dumps(teacher_feedback_counts),
-        # ✅ UPDATED: Batch-wise data now shows student counts
+        # ✅ UPDATED: Batch-wise data now shows student counts in sorted order
         'course_labels': json.dumps(batch_labels),  
         'course_student_counts': json.dumps(batch_ratings),  # Changed from course_ratings
         'teacher_courses': course_performance,  # Updated structure
@@ -614,9 +623,11 @@ def teacher_batch_list(request):
 
     assignments = TeacherBatch.objects.select_related('teacher', 'batch', 'course', 'department')
 
-    if selected_dept_id:
+    # ✅ Only filter if not "All"
+    if selected_dept_id and selected_dept_id != "All":
         assignments = assignments.filter(department__dept_id=selected_dept_id)
 
+    from collections import defaultdict
     grouped = defaultdict(list)
     grouped_info = {}
 
@@ -644,12 +655,10 @@ def teacher_batch_list(request):
         info['teachers'] = teachers
         grouped_list.append(info)
 
-    departments = Department.objects.all()
-
     return render(request, 'teacher_batch_list.html', {
         'assignments': grouped_list,
         'departments': departments,
-        'selected_dept_id': selected_dept_id,
+        'selected_dept_id': selected_dept_id or "All",
     })
 
 # ✅ View 2: Add Assignment (Multiple Teachers at Once)
@@ -907,6 +916,11 @@ def student_feedback_form(request):
     teacher_id = request.GET.get('teacher_id')
     teacher = get_object_or_404(Teacher, teacher_id=teacher_id)
 
+    # Get TeacherBatch record for this teacher (with course & batch info)
+    teacher_batch = TeacherBatch.objects.filter(
+        teacher=teacher
+    ).select_related('course', 'batch').first()  # pick first match
+
     # Get only active questions
     questions = FeedbackQuestion.objects.filter(active=True).order_by('q_id')
 
@@ -930,6 +944,7 @@ def student_feedback_form(request):
 
     context = {
         'teacher': teacher,
+        'teacher_batch': teacher_batch,  # ✅ pass this to template
         'mcq_questions': mcq_questions,
         'desc_questions': desc_questions,
         'session_id': request.session['student_feedback_session'],
@@ -1075,9 +1090,8 @@ def admin_student_feedback_responses(request):
             return redirect('login')
 
         # Courses assigned to the logged-in teacher
-        # Get all courses assigned to teacher first
         user_courses = Course.objects.filter(teacherbatch__teacher=teacher).distinct()
-        course_ids = list(user_courses.values_list('course_id', flat=True))  # always defined
+        course_ids = list(user_courses.values_list('course_id', flat=True))
 
         if selected_course_id:
             filtered_batches = Batch.objects.filter(course_id=selected_course_id)
@@ -1087,10 +1101,7 @@ def admin_student_feedback_responses(request):
         print("User Courses IDs:", course_ids)
         print("Filtered Batches IDs:", list(filtered_batches.values_list('batch_id', flat=True)))
 
-
-
     elif is_admin:
-        # Admin courses filtered by teacher or department
         if selected_teacher_id:
             courses = Course.objects.filter(teacherbatch__teacher_id=selected_teacher_id).distinct()
         elif selected_dept_id:
@@ -1098,7 +1109,6 @@ def admin_student_feedback_responses(request):
         else:
             courses = Course.objects.all()
 
-        # Batches filtered by selected course
         batches = Batch.objects.filter(course_id=selected_course_id) if selected_course_id else Batch.objects.all()
 
     # Build the filtered responses queryset
@@ -1182,18 +1192,25 @@ def admin_student_feedback_responses(request):
             })
 
         elif question.q_type == 'DESC':
+            # Only include responses that actually have text
+            non_empty_responses = q_responses.filter(
+                response_text__isnull=False
+            ).exclude(
+                response_text__exact=""
+            )
+
             desc_list = [{
                 'text': r.response_text,
                 'submitted_at': r.submitted_at,
                 'feedback_number': r.feedback_number,
                 'course_info': f"{r.teacher_batch.course.code}" if r.teacher_batch else "N/A"
-            } for r in q_responses if r.response_text]
+            } for r in non_empty_responses]
 
             questions_with_responses.append({
                 'question': question,
                 'type': 'DESC',
                 'responses': desc_list,
-                'total_responses': q_responses.count()
+                'total_responses': non_empty_responses.count()
             })
 
     return render(request, 'admin_response.html', {

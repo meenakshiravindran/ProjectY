@@ -79,6 +79,38 @@
         font-size: 0.8rem;
         font-weight: 500;
     }
+    .growth-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85em;
+    }
+
+    .growth-up {
+        background: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .growth-down {
+        background: rgba(244, 67, 54, 0.1);
+        color: #f44336;
+        border: 1px solid rgba(244, 67, 54, 0.3);
+    }
+
+    .growth-neutral {
+        background: rgba(158, 158, 158, 0.1);
+        color: #9e9e9e;
+        border: 1px solid rgba(158, 158, 158, 0.3);
+    }
+
+    .growth-arrow {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
 </style>
 
 <div class="container-fluid mt-4">
@@ -305,10 +337,16 @@
         
         <div class="col-lg-6 mb-3">
             <div class="chart-container">
-                <h5 class="mb-3">
-                    <i class="fas fa-chart-bar me-2 text-success"></i>
-                    Course-wise Performance
-                </h5>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-success"></i>
+                        Batch-wise Performance
+                    </h5>
+                    <div id="growthIndicator" class="growth-indicator">
+                        <span class="growth-arrow">→</span>
+                        <span>Loading...</span>
+                    </div>
+                </div>
                 <div style="position: relative; height: 300px;">
                     <canvas id="coursePerformanceChart"></canvas>
                 </div>
@@ -365,7 +403,6 @@
     </div>
     {% endif %}
 </div>
-
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -417,6 +454,56 @@
                 </div>
             </div>
         `;
+    }
+
+    // Growth trend functions
+    function calculateGrowthTrend(data) {
+        if (data.length < 2) return 'neutral';
+        
+        const firstHalf = data.slice(0, Math.ceil(data.length / 2));
+        const secondHalf = data.slice(Math.floor(data.length / 2));
+        
+        const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+        const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+        
+        const percentChange = ((secondAvg - firstAvg) / firstAvg) * 100;
+        
+        if (percentChange > 5) return 'up';
+        if (percentChange < -5) return 'down';
+        return 'neutral';
+    }
+
+    function updateGrowthIndicator(trend, data) {
+        const indicator = document.getElementById('growthIndicator');
+        if (!indicator) return;
+        
+        const firstHalf = data.slice(0, Math.ceil(data.length / 2));
+        const secondHalf = data.slice(Math.floor(data.length / 2));
+        const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+        const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+        const percentChange = ((secondAvg - firstAvg) / firstAvg) * 100;
+
+        indicator.className = 'growth-indicator';
+        
+        if (trend === 'up') {
+            indicator.classList.add('growth-up');
+            indicator.innerHTML = `
+                <span class="growth-arrow">↗</span>
+                <span>+${Math.abs(percentChange).toFixed(1)}%</span>
+            `;
+        } else if (trend === 'down') {
+            indicator.classList.add('growth-down');
+            indicator.innerHTML = `
+                <span class="growth-arrow">↘</span>
+                <span>-${Math.abs(percentChange).toFixed(1)}%</span>
+            `;
+        } else {
+            indicator.classList.add('growth-neutral');
+            indicator.innerHTML = `
+                <span class="growth-arrow">→</span>
+                <span>Stable</span>
+            `;
+        }
     }
 
     {% if is_admin %}
@@ -529,14 +616,23 @@
         options: chartOptions
     });
 
-    // Course Performance Chart - Updated to show student counts
+    // Course Performance Chart - Updated with growth arrow
+    const courseLabels = {{ course_labels|safe }};
+    const courseStudentCounts = {{ course_student_counts|safe }};
+    
+    // Calculate and display growth trend
+    if (courseStudentCounts.length > 0) {
+        const growthTrend = calculateGrowthTrend(courseStudentCounts);
+        updateGrowthIndicator(growthTrend, courseStudentCounts);
+    }
+    
     createChartIfExists('coursePerformanceChart', {
         type: 'bar',
         data: {
-            labels: {{ course_labels|safe }},
+            labels: courseLabels,
             datasets: [{
                 label: 'Students Reached',
-                data: {{ course_student_counts|safe }},
+                data: courseStudentCounts,
                 backgroundColor: '#667eea',
                 borderRadius: 8
             }]

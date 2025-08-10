@@ -65,14 +65,15 @@
 <form method="get" class="mb-3 d-flex align-items-center gap-2">
   <label for="department" class="fw-bold">Filter by Department:</label>
   <select name="department" id="department" class="form-select w-auto" onchange="this.form.submit()">
-    <option value="">All</option>
+    <option value="All" {% if selected_dept_id == "All" or not selected_dept_id %}selected{% endif %}>All</option>
     {% for dept in departments %}
-      <option value="{{ dept.dept_id }}" {% if selected_department == dept.dept_id|stringformat:"s" %}selected{% endif %}>
+      <option value="{{ dept.dept_id }}" {% if selected_dept_id|stringformat:"s" == dept.dept_id|stringformat:"s" %}selected{% endif %}>
         {{ dept.dept_name }}
       </option>
     {% endfor %}
   </select>
 </form>
+
 
 <div class="table-responsive">
   <table class="table table-bordered table-striped shadow-sm">

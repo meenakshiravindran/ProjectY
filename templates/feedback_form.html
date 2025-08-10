@@ -288,23 +288,32 @@
                 <div class="teacher-info">
                     <div class="teacher-info text-center mb-4">
                         {% if teacher.profile_picture %}
-                            <img src="{{ teacher.profile_picture.url }}" alt="Profile Picture"class="rounded-circle shadow" height="100" width="100"style="object-fit: cover; border: 2px solid #ccc;">
+                            <img src="{{ teacher.profile_picture.url }}" alt="Profile Picture"
+                                 class="rounded-circle shadow" height="100" width="100"
+                                 style="object-fit: cover; border: 2px solid #ccc;">
                         {% else %}
-                            <img src="/media/profile_pics/default.jpg" alt="Default Profile Picture" class="rounded-circle shadow" height="100" width="100" style="object-fit: cover; border: 2px solid #ccc;">
+                            <img src="/media/profile_pics/default.jpg" alt="Default Profile Picture"
+                                 class="rounded-circle shadow" height="100" width="100"
+                                 style="object-fit: cover; border: 2px solid #ccc;">
                         {% endif %}
                         <div style="margin-top: 15px;">
-                    <p><strong> <span class="teacher-badge">{{ teacher.name }}</span></p>
-                    {% if teacher_batch %}
-    <p class="mb-1"><small>
-        <strong>Course:</strong> {{ teacher_batch.course.course_code }}: {{ teacher_batch.course.course_name }}
-    </small></p>
-    <p class="mb-1"><small>
-        <strong>Batch:</strong> {{ teacher_batch.batch.batch_name }}
-    </small></p>
-{% endif %}
-                    <p class="mb-1"><small>Your feedback is valuable and completely anonymous. Please answer all questions honestly.</small></p>
-                    <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
-                </div>
+                            <p><strong><span class="teacher-badge">{{ teacher.name }}</span></strong></p>
+                            
+                            {% if teacher_batch %}
+                                <p style="margin: 5px 0 0 0; font-weight: 500; color: #4a0099; font-size: 0.95rem;">
+                                    {{ teacher_batch.course.code }} : {{ teacher_batch.course.name }}
+                                </p>
+                                <p style="margin: 0; color: #555; font-size: 0.9rem;">
+                                    Batch: {{ teacher_batch.batch.acad_year }} - {{ teacher_batch.batch.part }}
+                                </p>
+                            {% endif %}
+                            
+                            <p class="mb-1"><small>Your feedback is valuable and completely anonymous. Please answer all questions honestly.</small></p>
+                            <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
+                        </div>
+                    </div>
+                
+                
                 {% endif %}
 
                 <div id="message-container"></div>
@@ -365,7 +374,7 @@
         document.querySelectorAll('.rating-checkbox').forEach(checkbox => {
             checkbox.addEventListener('click', function() {
                 const question = this.getAttribute('data-question');
-                document.querySelectorAll(`[data-question="${question}"]`).forEach(cb => cb.classList.remove('checked'));
+                document.querySelectorAll([data-question="${question}"]).forEach(cb => cb.classList.remove('checked'));
                 this.classList.add('checked');
             });
         });
@@ -381,9 +390,9 @@
             const mcqQuestions = document.querySelectorAll('[data-question-type="MCQ"]');
             mcqQuestions.forEach((questionCard, index) => {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
+                const checked = document.querySelector([data-question="question_${questionId}"].checked);
                 if (!checked) {
-                    unansweredQuestions.push(`Question ${index + 1} (Multiple Choice)`);
+                    unansweredQuestions.push(Question ${index + 1} (Multiple Choice));
                 }
             });
 
@@ -393,12 +402,12 @@
                 const questionId = questionCard.getAttribute('data-question-id');
                 const textarea = questionCard.querySelector('textarea');
                 if (isRequired && !textarea.value.trim()) {
-                    unansweredQuestions.push(`Question ${mcqQuestions.length + index + 1} (Descriptive)`);
+                    unansweredQuestions.push(Question ${mcqQuestions.length + index + 1} (Descriptive));
                 }
             });
 
             if (unansweredQuestions.length > 0) {
-                messageContainer.innerHTML = `<div class="message error">❌ Please answer all required questions:<br>${unansweredQuestions.join(', ')}</div>`;
+                messageContainer.innerHTML = <div class="message error">❌ Please answer all required questions:<br>${unansweredQuestions.join(', ')}</div>;
                 messageContainer.scrollIntoView({ behavior: 'smooth' });
                 return;
             }
@@ -419,16 +428,16 @@
 
             mcqQuestions.forEach(questionCard => {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
+                const checked = document.querySelector([data-question="question_${questionId}"].checked);
                 if (checked) {
-                    formData.append(`question_${questionId}`, checked.getAttribute('data-value'));
+                    formData.append(question_${questionId}, checked.getAttribute('data-value'));
                 }
             });
 
             descQuestions.forEach(questionCard => {
                 const questionId = questionCard.getAttribute('data-question-id');
                 const textarea = questionCard.querySelector('textarea');
-                formData.append(`question_${questionId}`, textarea.value.trim());
+                formData.append(question_${questionId}, textarea.value.trim());
             });
 
             fetch('/student-feedback/submit/', {
@@ -439,17 +448,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    messageContainer.innerHTML = `<div class="message success">✅ ${data.message}</div>`;
+                    messageContainer.innerHTML = <div class="message success">✅ ${data.message}</div>;
                     document.getElementById('feedbackForm').style.display = 'none';
                     setTimeout(() => window.location.href = '/student-feedback/teachers/', 3000);
                 } else {
-                    messageContainer.innerHTML = `<div class="message error">❌ ${data.error || 'An error occurred.'}</div>`;
+                    messageContainer.innerHTML = <div class="message error">❌ ${data.error || 'An error occurred.'}</div>;
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Submit Feedback';
                 }
             })
             .catch(() => {
-                messageContainer.innerHTML = `<div class="message error">❌ An error occurred. Please try again.</div>`;
+                messageContainer.innerHTML = <div class="message error">❌ An error occurred. Please try again.</div>;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Submit Feedback';
             });

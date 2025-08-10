@@ -6,149 +6,158 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
       
     <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            color: #000;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 40px rgba(0, 0, 0, 0.25);
-        }
-
-        .glass-button {
+        .feedback-card {
             background: white;
-            color: #8e2de2;
-            border: 2px solid #8e2de2;
+            border: 1px solid #e9ecef;
             border-radius: 12px;
-            padding: 6px 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .feedback-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            border-color: #8e2de2;
+        }
+
+        .teacher-section {
+            padding: 20px 15px 15px 15px;
+            text-align: center;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .teacher-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #e9ecef;
+            overflow: hidden;
+            margin: 0 auto 12px auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .teacher-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 8px;
+        }
+
+        .teacher-details {
+            color: #6c757d;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .course-section {
+            padding: 15px 15px 25px 15px;
+            text-align: center;
+        }
+
+        .course-code {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #8e2de2;
+            margin-bottom: 5px;
+        }
+
+        .course-name {
+            font-size: 0.95rem;
+            color: #495057;
+            margin-bottom: 10px;
             font-weight: 500;
+        }
+
+        .batch-info {
+            font-size: 0.8rem;
+            color: #868e96;
+            margin-bottom: 25px;
+        }
+
+        .feedback-btn {
+            background: #8e2de2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
             text-decoration: none;
             display: inline-block;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
-            margin: 2px;
         }
 
-        .glass-button:hover {
-            background: #8e2de2;
+        .feedback-btn:hover {
+            background: #7529c7;
             color: white;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .icon-circle {
-            background: linear-gradient(135deg, #8e2de2, #4a00e0);
-            color: white;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-
-        .card-title {
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .card-text {
-            font-size: 0.95rem;
+            transform: scale(1.02);
         }
 
         .dashboard-heading {
             font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, #8e2de2, #4a00e0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: #343a40;
+            text-align: center;
+            margin-bottom: 3rem;
         }
 
-        .course-list {
-            background: rgba(142, 45, 226, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .course-item {
-            background: white;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-left: 4px solid #8e2de2;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .course-code {
-            font-weight: bold;
+        .dashboard-heading i {
             color: #8e2de2;
-        }
-
-        .batch-info {
-            font-size: 0.85rem;
-            color: #666;
         }
     </style>
 
-    <h2 class="dashboard-heading text-center mb-5">
+    <h2 class="dashboard-heading">
         <i class="bi bi-person-check-fill me-2"></i>
-        Select Teacher & Course to Give Feedback
+        Select Teacher to Give Feedback
     </h2>
           
     {% if teacher_courses %}
-        <div class="row">
+        <div class="row g-4">
             {% for teacher, courses in teacher_courses.items %}
-    {% for course_assignment in courses %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card glass-card h-100 p-4 d-flex flex-column">
-                
-                <!-- Teacher Info -->
-                <div class="text-center mb-3">
-                    <div class="icon-circle mx-auto overflow-hidden" 
-                         style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #fff;">
-                        {% if teacher.profile_picture %}
-                            <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.name }}'s photo" 
-                                 style="width: 100%; height: 100%; object-fit: cover;">
-                        {% else %}
-                            <i class="bi bi-person-fill" style="font-size: 2rem; line-height: 80px;"></i>
-                        {% endif %}
+                {% for course_assignment in courses %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feedback-card h-100">
+                            
+                            <!-- Teacher Section -->
+                            <div class="teacher-section">
+                                <div class="teacher-avatar">
+                                    {% if teacher.profile_picture %}
+                                        <img src="{{ teacher.profile_picture.url }}" 
+                                             alt="{{ teacher.name }}" 
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <div style="width: 100%; height: 100%; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-person-fill" style="font-size: 2rem; color: #adb5bd;"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <h5 class="teacher-name">{{ teacher.name }}</h5>
+                                
+                                <div class="teacher-details">
+                                    <div>DEPARTMENT : {{ teacher.dept.dept_name }}</div>
+                                    <div>DESIGNATION : {{ teacher.designation }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Course Section -->
+                            <div class="course-section">
+                                <div class="course-code">{{ course_assignment.course.code }}</div>
+                                <div class="course-name">{{ course_assignment.course.name }}</div>
+                                <div class="batch-info">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    {{ course_assignment.batch.acad_year }} - {{ course_assignment.batch.part }}
+                                </div>
+                                <a href="{% url 'student_feedback_form_by_teacher_course' course_assignment.teacher_batch_id %}" 
+                                   class="feedback-btn">
+                                    Give Feedback
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <h5 class="card-title mt-2">{{ teacher.name }}</h5>
-                    <p class="card-text mb-1"><strong>Department:</strong> {{ teacher.dept.dept_name }}</p>
-                    <p class="card-text"><strong>Designation:</strong> {{ teacher.designation }}</p>
-                </div>
-
-                <!-- Course Info -->
-                <div class="mt-auto text-center">
-                    <div class="course-code">{{ course_assignment.course.code }}</div>
-                    <div style="font-size: 0.9rem;">{{ course_assignment.course.name }}</div>
-                    <div class="batch-info">
-                        <i class="bi bi-calendar3"></i> {{ course_assignment.batch.acad_year }} - {{ course_assignment.batch.part }}
-                    </div>
-
-                    <!-- Feedback Button -->
-                    <a href="{% url 'student_feedback_form_by_teacher_course' course_assignment.teacher_batch_id %}" 
-                       class="glass-button mt-3 d-inline-block">
-                        Give Feedback
-                    </a>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
-{% endfor %}
-
-
+                {% endfor %}
+            {% endfor %}
         </div>
     {% else %}
         <div class="row justify-content-center">
@@ -157,20 +166,9 @@
                     <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem; color: #ffc107;"></i>
                     <h4 class="mt-3">No Active Courses for Feedback</h4>
                     <p class="mb-4">Currently, no teachers have activated courses for feedback collection.</p>
-                    <div class="text-muted">
-                        <small>
-                            <strong>For Administrators:</strong><br>
-                            1. Go to Course Management → Activate required batches<br>
-                            2. Go to Teacher Management → Click on teacher → Activate courses for feedback<br>
-                            3. Students can then give feedback for specific teacher-course combinations
-                        </small>
-                    </div>
                 </div>
             </div>
         </div>
     {% endif %}
-
-    <!-- Instructions Card -->
-   
 </div>
 {% endblock %}

@@ -84,13 +84,6 @@
             <div class="row">
                 <div class="col-md-4"><strong>Department:</strong> {{ teacher.dept.dept_name }}</div>
                 <div class="col-md-4"><strong>Designation:</strong> {{ teacher.designation }}</div>
-                <div class="col-md-4"><strong>Feedback Status:</strong> 
-                    {% if teacher.fb_active %}
-                        <span class="badge bg-success">Active</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Inactive</span>
-                    {% endif %}
-                </div>
             </div>
         </div>
     </div>
@@ -159,14 +152,5 @@
     </div>
 </div>
 
-<!-- Info Card -->
-<div class="alert alert-info mt-4">
-    <h6><i class="bi bi-info-circle"></i> How it works:</h6>
-    <ol class="mb-0">
-        <li><strong>Batch Activation:</strong> First, activate batches in Course Management</li>
-        <li><strong>Course Activation:</strong> Then activate specific courses for this teacher to enable feedback</li>
-        <li><strong>Student Feedback:</strong> Students can then give feedback for the activated teacher-course combinations</li>
-    </ol>
-</div>
 
 {% endblock %}

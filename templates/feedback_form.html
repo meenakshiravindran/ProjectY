@@ -76,6 +76,42 @@
             box-shadow: 0 2px 10px rgba(102, 0, 204, 0.3);
         }
 
+        .card {
+            border-radius: 10px !important;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(250,250,255,0.95));
+            border: 1px solid rgba(102, 0, 204, 0.2);
+        }
+
+        .badge {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            margin-top: 5px;
+        }
+
+        .bg-light {
+            background-color: #f8f9fa !important;
+        }
+
+        .text-dark {
+            color: #212529 !important;
+        }
+
+        .border {
+            border: 1px solid #dee2e6 !important;
+        }
+
+        .bg-secondary {
+            background-color: #6c757d !important;
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            margin-top: 5px;
+        }
+
         .question-section {
             margin-bottom: 35px;
             padding: 25px;
@@ -249,6 +285,26 @@
             color: #856404;
         }
 
+        .shadow-sm {
+            box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .mt-3 {
+            margin-top: 1rem !important;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.25rem !important;
+        }
+
+        .mb-0 {
+            margin-bottom: 0 !important;
+        }
+
         @media (max-width: 1024px) {
             .rating-container {
                 flex-wrap: wrap;
@@ -285,35 +341,39 @@
                 <p class="intro-text text-center">Increase engagement and honesty by removing fear of judgment</p>
 
                 {% if teacher %}
-                <div class="teacher-info">
-                    <div class="teacher-info text-center mb-4">
-                        {% if teacher.profile_picture %}
-                            <img src="{{ teacher.profile_picture.url }}" alt="Profile Picture"
-                                 class="rounded-circle shadow" height="100" width="100"
-                                 style="object-fit: cover; border: 2px solid #ccc;">
-                        {% else %}
-                            <img src="/media/profile_pics/default.jpg" alt="Default Profile Picture"
-                                 class="rounded-circle shadow" height="100" width="100"
-                                 style="object-fit: cover; border: 2px solid #ccc;">
-                        {% endif %}
-                        <div style="margin-top: 15px;">
-                            <p><strong><span class="teacher-badge">{{ teacher.name }}</span></strong></p>
-                            
-                            {% if teacher_batch %}
-                                <p style="margin: 5px 0 0 0; font-weight: 500; color: #4a0099; font-size: 0.95rem;">
-                                    {{ teacher_batch.course.code }} : {{ teacher_batch.course.name }}
-                                </p>
-                                <p style="margin: 0; color: #555; font-size: 0.9rem;">
-                                    Batch: {{ teacher_batch.batch.acad_year }} - {{ teacher_batch.batch.part }}
-                                </p>
-                            {% endif %}
-                            
-                            <p class="mb-1"><small>Your feedback is valuable and completely anonymous. Please answer all questions honestly.</small></p>
-                            <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
-                        </div>
-                    </div>
-                
-                {% endif %}
+<div class="card shadow-sm mb-4" style="border-radius: 10px; overflow: hidden;">
+    <div class="card-body text-center" style="background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(250,250,255,0.95)); border: 1px solid rgba(102, 0, 204, 0.2);">
+        
+        {% if teacher.profile_picture %}
+            <img src="{{ teacher.profile_picture.url }}" alt="Profile Picture"
+                 class="rounded-circle shadow" height="100" width="100"
+                 style="object-fit: cover; border: 2px solid #ccc;">
+        {% else %}
+            <img src="/media/profile_pics/default.jpg" alt="Default Profile Picture"
+                 class="rounded-circle shadow" height="100" width="100"
+                 style="object-fit: cover; border: 2px solid #ccc;">
+        {% endif %}
+
+        <div style="margin-top: 15px;">
+            <p><strong><span class="teacher-badge">{{ teacher.name }}</span></strong></p>
+            
+            {% if teacher_batch %}
+                <p style="margin: 5px 0 0 0; font-weight: 500; color: #4a0099; font-size: 0.95rem;">
+                    {{ teacher_batch.course.code }} : {{ teacher_batch.course.name }}
+                </p>
+                <p style="margin: 0; color: #555; font-size: 0.9rem;">
+                    Batch: {{ teacher_batch.batch.acad_year }} - {{ teacher_batch.batch.part }}
+                </p>
+            {% endif %}
+        </div>
+
+        <p class="mt-3 mb-1">
+            <small>Your feedback is valuable and completely anonymous. Please answer all questions honestly.</small>
+        </p>
+        <p class="mb-0"><small><strong>Total Questions:</strong> {{ total_questions }}</small></p>
+    </div>
+</div>
+{% endif %}
 
                 <div id="message-container"></div>
 
@@ -371,13 +431,12 @@
 
     <script>
         document.querySelectorAll('.rating-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('click', function() {
-        const question = this.getAttribute('data-question');
-        document.querySelectorAll(`[data-question="${question}"]`)
-            .forEach(cb => cb.classList.remove('checked'));
-        this.classList.add('checked');
-    });
-});
+            checkbox.addEventListener('click', function() {
+                const question = this.getAttribute('data-question');
+                document.querySelectorAll(`[data-question="${question}"]`).forEach(cb => cb.classList.remove('checked'));
+                this.classList.add('checked');
+            });
+        });
 
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -390,9 +449,9 @@
             const mcqQuestions = document.querySelectorAll('[data-question-type="MCQ"]');
             mcqQuestions.forEach((questionCard, index) => {
                 const questionId = questionCard.getAttribute('data-question-id');
-                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`)
+                const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
                 if (!checked) {
-                    unansweredQuestions.push(Question ${index + 1} (Multiple Choice));
+                    unansweredQuestions.push(`Question ${index + 1} (Multiple Choice)`);
                 }
             });
 
@@ -402,12 +461,12 @@
                 const questionId = questionCard.getAttribute('data-question-id');
                 const textarea = questionCard.querySelector('textarea');
                 if (isRequired && !textarea.value.trim()) {
-                    unansweredQuestions.push(Question ${mcqQuestions.length + index + 1} (Descriptive));
+                    unansweredQuestions.push(`Question ${mcqQuestions.length + index + 1} (Descriptive)`);
                 }
             });
 
             if (unansweredQuestions.length > 0) {
-                messageContainer.innerHTML = <div class="message error">❌ Please answer all required questions:<br>${unansweredQuestions.join(', ')}</div>;
+                messageContainer.innerHTML = `<div class="message error">❌ Please answer all required questions:<br>${unansweredQuestions.join(', ')}</div>`;
                 messageContainer.scrollIntoView({ behavior: 'smooth' });
                 return;
             }
@@ -429,16 +488,15 @@
             mcqQuestions.forEach(questionCard => {
                 const questionId = questionCard.getAttribute('data-question-id');
                 const checked = document.querySelector(`[data-question="question_${questionId}"].checked`);
-
                 if (checked) {
-                    formData.append(question_${questionId}, checked.getAttribute('data-value'));
+                    formData.append(`question_${questionId}`, checked.getAttribute('data-value'));
                 }
             });
 
             descQuestions.forEach(questionCard => {
                 const questionId = questionCard.getAttribute('data-question-id');
                 const textarea = questionCard.querySelector('textarea');
-                formData.append(question_${questionId}, textarea.value.trim());
+                formData.append(`question_${questionId}`, textarea.value.trim());
             });
 
             fetch('/student-feedback/submit/', {
@@ -449,17 +507,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    messageContainer.innerHTML = <div class="message success">✅ ${data.message}</div>;
+                    messageContainer.innerHTML = `<div class="message success">✅ ${data.message}</div>`;
                     document.getElementById('feedbackForm').style.display = 'none';
                     setTimeout(() => window.location.href = '/student-feedback/teachers/', 3000);
                 } else {
-                    messageContainer.innerHTML = <div class="message error">❌ ${data.error || 'An error occurred.'}</div>;
+                    messageContainer.innerHTML = `<div class="message error">❌ ${data.error || 'An error occurred.'}</div>`;
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Submit Feedback';
                 }
             })
             .catch(() => {
-                messageContainer.innerHTML = <div class="message error">❌ An error occurred. Please try again.</div>;
+                messageContainer.innerHTML = `<div class="message error">❌ An error occurred. Please try again.</div>`;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Submit Feedback';
             });

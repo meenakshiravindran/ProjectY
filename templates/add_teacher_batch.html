@@ -8,6 +8,13 @@
             <h4 class="mb-0">Assign Teacher(s) to Batch</h4>
         </div>
         <div class="card-body">
+
+            {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
             <form method="post">
                 {% csrf_token %}
                 <div class="mb-3">
@@ -23,10 +30,7 @@
                     <label for="id_batch" class="form-label">Batch</label>
                     <select name="batch" class="form-select" id="id_batch" data-selected="{{ form.batch.value }}">
                     </select>
-                    
                 </div>
-
-                
 
                 <div class="mb-3" id="teacher-container">
                     <label class="form-label">Select Teacher(s)</label>
@@ -46,6 +50,7 @@
         </div>
     </div>
 </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const departmentSelect = document.getElementById('id_department');
@@ -126,9 +131,6 @@
             courseSelect.dispatchEvent(event);
         }
     });
-    </script>
-    
+</script>
 
-    
 {% endblock %}
-

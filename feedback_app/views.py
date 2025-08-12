@@ -664,6 +664,8 @@ def teacher_batch_list(request):
 # ✅ View 2: Add Assignment (Multiple Teachers at Once)
 @login_required
 def assign_teacher_batch(request):
+    error_message = None
+
     if request.method == 'POST':
         form = TeacherBatchAssignForm(request.POST)
         if form.is_valid():
@@ -672,19 +674,36 @@ def assign_teacher_batch(request):
             course = form.cleaned_data['course']
             department = form.cleaned_data['department']
 
-            for teacher in teachers:
-                TeacherBatch.objects.create(
-                    teacher=teacher,
-                    batch=batch,
-                    course=course,
-                    department=department
-                )
+            # Find already assigned teachers for this batch & course
+            assigned_teachers = TeacherBatch.objects.filter(
+                teacher__in=teachers,
+                batch=batch,
+                course=course
+            ).select_related('teacher')
 
-            return redirect('teacher_batch_list')
+            if assigned_teachers.exists():
+                # Extract teacher names
+                names = [t.teacher.name for t in assigned_teachers]
+                # Remove duplicates and join names with comma
+                unique_names = ", ".join(sorted(set(names)))
+                error_message = f"{unique_names} already assigned to this course and batch."
+            else:
+                for teacher in teachers:
+                    TeacherBatch.objects.create(
+                        teacher=teacher,
+                        batch=batch,
+                        course=course,
+                        department=department
+                    )
+                return redirect('teacher_batch_list')
     else:
         form = TeacherBatchAssignForm()
 
-    return render(request, 'add_teacher_batch.html', {'form': form})
+    return render(request, 'add_teacher_batch.html', {
+        'form': form,
+        'error_message': error_message
+    })
+
 @login_required
 def edit_teacher_batch_group(request, batch_id, course_id, dept_id):
     batch_obj = get_object_or_404(Batch, batch_id=batch_id)
